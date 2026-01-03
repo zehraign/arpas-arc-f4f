@@ -1,10 +1,13 @@
 import { XR, IfInSessionMode, createXRStore } from "@react-three/xr";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Text } from "@react-three/drei";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import * as THREE from "three";
 
 import QuizPlane from "./components/QuizPlane";
+import PuzzleWithBack from "./components/PuzzleWithBack";
 import IndexPage from "./pages/index";
+import InfoPlanes from "./components/InfoPlane";
 
 import { quizLocations } from "./data/locations";
 import { distanceInMeters } from "./utility/geo";
@@ -12,20 +15,15 @@ import { distanceInMeters } from "./utility/geo";
 import { SceneData } from "./types/objectData";
 import { TopicData } from "./types/topicData";
 import { ContentTypesData } from "./types/contentTypesData";
-import InfoPlanes from "./components/InfoPlane";
 
-/* XR STORE                                           */
+/* XR STORE */
 const store = createXRStore({
   controller: false,
-  sessionInit: {
-    requiredFeatures: ["hit-test"],
-  },
 });
 
 /* Quiz loader */
 const quizzes = (import.meta as any).glob("./data/*.json");
 
-/* Props                                              */
 interface AppProps {
   buttonClassName?: string;
   buttonText?: string | JSX.Element;
@@ -35,8 +33,28 @@ interface AppProps {
   topic: TopicData;
 }
 
+/* Billboard-Komponente: Dreht nur zur Kamera */
+function Billboard({
+  children,
+  position,
+}: {
+  children: React.ReactNode;
+  position: [number, number, number];
+}) {
+  const ref = useRef<THREE.Group>(null);
+  const { camera } = useThree();
 
-/* App                                                */
+  useFrame(() => {
+    if (ref.current) {
+      const target = new THREE.Vector3(camera.position.x, ref.current.position.y, camera.position.z);
+      ref.current.lookAt(target);
+    }
+  });
+
+  return <group ref={ref} position={position}>{children}</group>;
+}
+
+/* App */
 export default function App({
   buttonClassName = "start-button",
   buttonText = "Enter AR",
@@ -46,20 +64,19 @@ export default function App({
   topic,
 }: AppProps) {
   const [inAR, setInAR] = useState(false);
-  const [showQuiz, setShowQuiz] = useState(false);
-  const [quizData, setQuizData] = useState<any[] | null>(null);
-  const [canStartQuiz, setCanStartQuiz] = useState(false);
   const [activeLocation, setActiveLocation] = useState<any | null>(null);
+  const [quizData, setQuizData] = useState<any[] | null>(null);
+  const [showQuiz, setShowQuiz] = useState(false);
+  const [showPuzzle, setShowPuzzle] = useState(false);
+  const [canStartQuiz, setCanStartQuiz] = useState(false);
 
-
-  /* ENTER AR                                          */
+  /* ENTER AR */
   const handleEnterAR = async () => {
     await store.enterAR();
     setInAR(true);
   };
 
-  
-  /* LOCATION + QUIZ LOAD                               */
+  /* LOCATION + QUIZ LOAD */
   useEffect(() => {
     if (!inAR) return;
 
@@ -80,17 +97,25 @@ export default function App({
 
       setActiveLocation(found);
 
-      const quizPath = `./data/${found.quizFile}`;
-      const loader = quizzes[quizPath];
-      if (!loader) return;
+      // Quiz laden
+      if (found.features?.quiz) {
+        const quizPath = `./data/${found.features.quiz.file}`;
+        const loader = quizzes[quizPath];
+        if (!loader) return;
+        const data = await loader();
+        setQuizData(data.default);
+        setCanStartQuiz(true);
+      } else {
+        setCanStartQuiz(false);
+      }
 
-      const data = await loader();
-      setQuizData(data.default);
-      setCanStartQuiz(true);
+      // Puzzle nur für Standorte mit Puzzle-Feature
+      if (!found.features?.puzzle) {
+        setShowPuzzle(false);
+      }
     });
   }, [inAR]);
 
-  /* Render                                            */
   return (
     <>
       {/* START UI (NICHT AR) */}
@@ -99,9 +124,7 @@ export default function App({
           <button className={buttonClassName} onClick={handleEnterAR}>
             {buttonText}
           </button>
-          <button className={buttonClassName}>
-            {view3dButtonText}
-          </button>
+          <button className={buttonClassName}>{view3dButtonText}</button>
         </div>
       )}
 
@@ -110,54 +133,79 @@ export default function App({
         <XR store={store}>
           <IfInSessionMode allow="immersive-ar">
             {/* Szene */}
-            <IndexPage
-              contentTypes={content_types}
-              sceneData={scene}
-              topicData={topic}
-            />
+            <IndexPage contentTypes={content_types} sceneData={scene} topicData={topic} />
 
-            {/* Standortabhängiger Quiz-Button  */}
-            {canStartQuiz && activeLocation && !showQuiz && (
-              <group position={[0, 1, -1.4]}>
-                <mesh onPointerDown={() => setShowQuiz(true)}>
-                  <boxGeometry args={[0.9, 0.32, 0.1]} />
-                  <meshStandardMaterial
-                    color={activeLocation.button?.color ?? "#187852"}
-                  />
-                </mesh>
+            {/* Zwei Buttons nebeneinander: Quiz & Puzzle */}
+            {activeLocation && !showQuiz && !showPuzzle && (
+  <group position={[0, 1, -1.4]} rotation={[0, 0, 0]}>
+    {/* Quiz Button */}
+    {canStartQuiz && activeLocation.features?.quiz && (
+      <group position={[-0.55, 0, 0]}>
+        <mesh onPointerDown={() => setShowQuiz(true)}>
+          <boxGeometry args={[0.9, 0.32, 0.1]} />
+          <meshStandardMaterial color={activeLocation.button?.color ?? "#187852"} />
+        </mesh>
+        <Text
+          position={[0, 0, 0.09]}
+          fontSize={0.065}
+          color="black"
+          anchorX="center"
+          anchorY="middle"
+          maxWidth={0.8}
+          textAlign="center"
+        >
+          {activeLocation.button?.label ?? "Quiz starten"}
+        </Text>
+      </group>
+    )}
 
-                {/* ZENTRIERTER TEXT */}
-                <Text
-                  position={[0, 0, 0.09]}
-                  fontSize={0.065}
-                  color="black"
-                  anchorX="center"
-                  anchorY="middle"
-                  maxWidth={0.8}
-                  textAlign="center"
-                >
-                  {activeLocation.button?.label ?? "Quiz starten"}
-                </Text>
-              </group>
-            )}
+    {/* Puzzle Button */}
+    {activeLocation.features?.puzzle && (
+      <group position={[0.55, 0, 0]}>
+        <mesh onPointerDown={() => setShowPuzzle(true)}>
+          <boxGeometry args={[0.9, 0.32, 0.1]} />
+          <meshStandardMaterial color="#3c8c40" />
+        </mesh>
+        <Text
+          position={[0, 0, 0.09]}
+          fontSize={0.065}
+          anchorX="center"
+          anchorY="middle"
+        >
+          Puzzle starten 🌱
+        </Text>
+      </group>
+    )}
+  </group>
+)}
 
-            {/* QuizPlane in AR                  */}
+
+            {/* QuizPlane */}
             {showQuiz && quizData && (
               <QuizPlane
                 questions={quizData}
+                position={[0, 1, -1.7]}
                 onClose={() => setShowQuiz(false)}
-                position={[0, 1, -1.7]} // bewusst weiter weg
               />
             )}
 
-            {/* INFO-PLANE ZU DEN ALGENTANKS */}
-<InfoPlanes
-  position={[3, 0.5, -1]}
-  rotation={[0, -0.3, 0]}
-/>
+            {/* Puzzle */}
+            {showPuzzle && activeLocation?.features?.puzzle && (
+              <PuzzleWithBack
+                onBack={() => setShowPuzzle(false)}
+              />
+            )}
+
+            {/* InfoPlanes nach Standort */}
+            {activeLocation && activeLocation.infoId && (
+              <Billboard position={[3, 0.5, -1]}>
+                <InfoPlanes locationId={activeLocation.infoId} />
+              </Billboard>
+            )}
           </IfInSessionMode>
         </XR>
       </Canvas>
     </>
   );
 }
+

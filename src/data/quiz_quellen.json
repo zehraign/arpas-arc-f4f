@@ -1,8 +1,18 @@
 [
   {
+    "question": "Welche wichtigen Nährstoffe liefern Quallen?",
+    "options": ["Proteine, Omega-3-Fettsäuren und Vitamine", "nur Wasser und Proteine", "Zucker"],
+    "correct": 0
+  },
+  {
     "question": "Warum werden Mangrovenqualle als Nahrungsmittel erforscht?",
     "options": ["Sie sind giftig", "Sie sind selten", "Sie könnten eine neue Proteinquelle sein"],
     "correct": 2
+  },
+  {
+    "question": "Wie helfen Mikroalgen Quallen bei der Nährstoffproduktion?",
+    "options": ["Sie liefern Lichtenergie über Photosynthese ", "Sie fressen die Qualle", "Sie reinigen nur das Wasser"],
+    "correct": 0
   },
   {
     "question": "Warum sind flache Gewässer mit Mikroalgen wichtig für Mangrovenqualle?",
@@ -13,15 +23,6 @@
     "question": "Was bedeutet „Symbiose“ bei Mangrovenqualle?",
     "options": ["Kampf zwischen Arten", "Zusammenleben mit Mikroalgen zum Vorteil beider", "Krankheit"],
     "correct": 1
-  },
-  {
-    "question": "Warum sind Mangrovenquallen besonders geeignet für die Stadt?",
-    "options": ["Sie brauchen wenig Platz und wachsen in Indoor-Anlagen", "Sie brauchen große Ozeane", "Sie brauchen viel Frischwasser"],
-    "correct": 0
-  },
-  {
-    "question": "Warum sind Mikroalgen für Mangrovenqualle lebenswichtig?",
-    "options": ["Sie machen das Wasser sauber", "Sie liefern Energie durch Licht (Photosynthese)", "Sie schützen vor Fischen"],
-    "correct": 1
   }
+  
 ]

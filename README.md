@@ -1,4 +1,4 @@
 # ARPAS
 
-character-quiz: --> gemeinsamer branch 
-ist quiz, character, 3D modelle, info panels
+character-quiz Branch: --> gemeinsamer branch 
+hat quiz, character, 3D modelle, info panels

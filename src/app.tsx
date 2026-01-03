@@ -1,10 +1,12 @@
 import { XR, IfInSessionMode, createXRStore } from "@react-three/xr";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Text } from "@react-three/drei";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import * as THREE from "three";
 
 import QuizPlane from "./components/QuizPlane";
 import IndexPage from "./pages/index";
+import InfoPlanes from "./components/InfoPlane";
 
 import { quizLocations } from "./data/locations";
 import { distanceInMeters } from "./utility/geo";
@@ -12,9 +14,8 @@ import { distanceInMeters } from "./utility/geo";
 import { SceneData } from "./types/objectData";
 import { TopicData } from "./types/topicData";
 import { ContentTypesData } from "./types/contentTypesData";
-import InfoPlanes from "./components/InfoPlane";
 
-/* XR STORE                                           */
+/* XR STORE */
 const store = createXRStore({
   controller: false,
   sessionInit: {
@@ -25,7 +26,7 @@ const store = createXRStore({
 /* Quiz loader */
 const quizzes = (import.meta as any).glob("./data/*.json");
 
-/* Props                                              */
+/* Props */
 interface AppProps {
   buttonClassName?: string;
   buttonText?: string | JSX.Element;
@@ -35,8 +36,29 @@ interface AppProps {
   topic: TopicData;
 }
 
+/* Billboard-Komponente: Dreht nur zur Kamera */
+function Billboard({
+  children,
+  position,
+}: {
+  children: React.ReactNode;
+  position: [number, number, number];
+}) {
+  const ref = useRef<THREE.Group>(null);
+  const { camera } = useThree();
 
-/* App                                                */
+  useFrame(() => {
+    if (ref.current) {
+      // Nur auf Y-Achse drehen
+      const target = new THREE.Vector3(camera.position.x, ref.current.position.y, camera.position.z);
+      ref.current.lookAt(target);
+    }
+  });
+
+  return <group ref={ref} position={position}>{children}</group>;
+}
+
+/* App */
 export default function App({
   buttonClassName = "start-button",
   buttonText = "Enter AR",
@@ -51,15 +73,13 @@ export default function App({
   const [canStartQuiz, setCanStartQuiz] = useState(false);
   const [activeLocation, setActiveLocation] = useState<any | null>(null);
 
-
-  /* ENTER AR                                          */
+  /* ENTER AR */
   const handleEnterAR = async () => {
     await store.enterAR();
     setInAR(true);
   };
 
-  
-  /* LOCATION + QUIZ LOAD                               */
+  /* LOCATION + QUIZ LOAD */
   useEffect(() => {
     if (!inAR) return;
 
@@ -90,7 +110,6 @@ export default function App({
     });
   }, [inAR]);
 
-  /* Render                                            */
   return (
     <>
       {/* START UI (NICHT AR) */}
@@ -99,9 +118,7 @@ export default function App({
           <button className={buttonClassName} onClick={handleEnterAR}>
             {buttonText}
           </button>
-          <button className={buttonClassName}>
-            {view3dButtonText}
-          </button>
+          <button className={buttonClassName}>{view3dButtonText}</button>
         </div>
       )}
 
@@ -116,17 +133,15 @@ export default function App({
               topicData={topic}
             />
 
-            {/* Standortabhängiger Quiz-Button  */}
+            {/* Standortabhängiger Quiz-Button */}
             {canStartQuiz && activeLocation && !showQuiz && (
-              <group position={[0, 1, -1.4]}>
+              <Billboard position={[0, 1, -1.4]}>
                 <mesh onPointerDown={() => setShowQuiz(true)}>
                   <boxGeometry args={[0.9, 0.32, 0.1]} />
                   <meshStandardMaterial
                     color={activeLocation.button?.color ?? "#187852"}
                   />
                 </mesh>
-
-                {/* ZENTRIERTER TEXT */}
                 <Text
                   position={[0, 0, 0.09]}
                   fontSize={0.065}
@@ -138,23 +153,24 @@ export default function App({
                 >
                   {activeLocation.button?.label ?? "Quiz starten"}
                 </Text>
-              </group>
+              </Billboard>
             )}
 
-            {/* QuizPlane in AR                  */}
+            {/* QuizPlane */}
             {showQuiz && quizData && (
               <QuizPlane
                 questions={quizData}
                 onClose={() => setShowQuiz(false)}
-                position={[0, 1, -1.7]} // bewusst weiter weg
+                position={[0, 1, -1.7]}
               />
             )}
 
-            {/* INFO-PLANE ZU DEN ALGENTANKS */}
-<InfoPlanes
-  position={[3, 0.5, -1]}
-  rotation={[0, -0.3, 0]}
-/>
+            {/* InfoPlanes nach Standort */}
+            {activeLocation && (
+              <Billboard position={[3, 0.5, -1]}>
+                <InfoPlanes locationId={activeLocation.infoId} />
+              </Billboard>
+            )}
           </IfInSessionMode>
         </XR>
       </Canvas>

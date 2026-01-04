@@ -1,6 +1,6 @@
 import { XR, IfInSessionMode, createXRStore } from "@react-three/xr";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Text } from "@react-three/drei";
+import { Text, RoundedBox } from "@react-three/drei";
 import { useEffect, useState, useRef } from "react";
 import * as THREE from "three";
 
@@ -137,18 +137,25 @@ export default function App({
 
             {/* Zwei Buttons nebeneinander: Quiz & Puzzle */}
             {activeLocation && !showQuiz && !showPuzzle && (
-  <group position={[0, 1, -1.4]} rotation={[0, 0, 0]}>
-    {/* Quiz Button */}
+  <group position={[0, 1, -1.4]}>
+    {/* QUIZ BUTTON */}
     {canStartQuiz && activeLocation.features?.quiz && (
-      <group position={[-0.55, 0, 0]}>
-        <mesh onPointerDown={() => setShowQuiz(true)}>
-          <boxGeometry args={[0.9, 0.32, 0.1]} />
-          <meshStandardMaterial color={activeLocation.button?.color ?? "#187852"} />
-        </mesh>
+      <group position={[-0.6, 0, -1]}>
+        <RoundedBox
+          args={[0.9, 0.32, 0.08]}
+          radius={0.06}
+          smoothness={4}
+          onPointerDown={() => setShowQuiz(true)}
+        >
+          <meshStandardMaterial
+            color={activeLocation.button?.color ?? "#187852"}
+          />
+        </RoundedBox>
+
         <Text
-          position={[0, 0, 0.09]}
+          position={[0, 0, 0.06]}
           fontSize={0.065}
-          color="black"
+          color="#ffffff"
           anchorX="center"
           anchorY="middle"
           maxWidth={0.8}
@@ -159,16 +166,22 @@ export default function App({
       </group>
     )}
 
-    {/* Puzzle Button */}
+    {/* PUZZLE BUTTON */}
     {activeLocation.features?.puzzle && (
-      <group position={[0.55, 0, 0]}>
-        <mesh onPointerDown={() => setShowPuzzle(true)}>
-          <boxGeometry args={[0.9, 0.32, 0.1]} />
+      <group position={[0.6, 0, -1]}>
+        <RoundedBox
+          args={[0.9, 0.32, 0.08]}
+          radius={0.06}
+          smoothness={4}
+          onPointerDown={() => setShowPuzzle(true)}
+        >
           <meshStandardMaterial color="#3c8c40" />
-        </mesh>
+        </RoundedBox>
+
         <Text
-          position={[0, 0, 0.09]}
+          position={[0, 0, 0.06]}
           fontSize={0.065}
+          color="#ffffff"
           anchorX="center"
           anchorY="middle"
         >
@@ -178,6 +191,7 @@ export default function App({
     )}
   </group>
 )}
+
 
 
             {/* QuizPlane */}

@@ -21,7 +21,7 @@ export const quizLocations = [
   {
     id: "algen",
     name: "Gebäude A – Algenlabor",
-    coords: { lat: 52.52667793495367, lon: 13.360375671644709 },//52.52667793495367, 13.360375671644709 zuhause
+    coords: { lat: 52.540636660690225, lon: 13.391817612557453 },//52.52667793495367, 13.360375671644709 zuhause
     radius: 100, // lat: 52.540636660690225, lon: 13.391817612557453 richtige kooridaten 
 
     features: {
@@ -43,7 +43,7 @@ export const quizLocations = [
   {
     id: "quallen",
     name: "Bibliothek – Quallenlabor",
-    coords: { lat: 52.455524445488415, lon: 13.524730308877778 }, 
+    coords: { lat: 52.52667793495367, lon: 13.360375671644709 }, // richtige lat: 52.455524445488415, lon: 13.524730308877778 }
     radius: 100, 
 
     features: {

@@ -108,24 +108,92 @@ export default function InfoPlanes({ locationId, ...props }: InfoPlanesProps) {
         </group>
       )}
 
-      {/* INFO PANELS */}
-      {showInfo && (
-        <group>
-          {planes.map((plane, idx) => (
-            <group key={idx} position={[idx * 1.0 - 1.5, 0, 0]}>
-              <RoundedBox args={[0.9, 1.1, 0.05]}>
-                <meshStandardMaterial color="#2B4E4C" />
-              </RoundedBox>
-              <Text position={[0, 0.45, 0.03]} fontSize={0.08}>
-                {plane.title}
-              </Text>
-              <Text position={[0, 0.15, 0.03]} fontSize={0.05} maxWidth={0.8}>
-                {plane.content.map((l) => `• ${l}`).join("\n")}
-              </Text>
-            </group>
-          ))}
+       {/* INFO PANELS */}
+       {showInfo && (
+  <group>
+    {/* Info-Textpanels */}
+    {planes.map((plane, idx) => {
+      const xOffset = (idx % 3) * 0.95 - 0.95;
+      const yOffset = -Math.floor(idx / 3) * 1.5;
+      return (
+        <group key={idx} position={[xOffset, yOffset, 0]}>
+          <RoundedBox args={[0.9, 1.1, 0.05]} radius={0.03}>
+            <meshStandardMaterial color="#2B4E4C" />
+          </RoundedBox>
+
+          <Text
+            position={[0, 0.45, 0.03]}
+            fontSize={0.08}
+            color="white"
+            anchorX="center"
+            anchorY="top"
+            maxWidth={0.85}
+            textAlign="center"
+            fontWeight="bold"
+          >
+            {plane.title}
+          </Text>
+
+          <Text
+            position={[0, 0.15, 0.03]}
+            fontSize={0.05}
+            color="white"
+            anchorX="center"
+            anchorY="top"
+            maxWidth={0.8}
+            textAlign="center"
+            lineHeight={1.4}
+          >
+            {plane.content.map((line) => `• ${line}`).join("\n")}
+          </Text>
         </group>
-      )}
+      );
+    })}
+
+   {/* ======== 4 Bilder ÜBER den Info-Panels ======== */}
+<group position={[0, 1.8, 0]}>
+  {["Qualle1.png", "Qualle2.jpg", "Qualle3.jpg", "Qualle4.webp"].map(
+    (img, i) => {
+      const tex = useLoader(
+        TextureLoader,
+        `/static/images/Qualle/${img}`
+      );
+
+      return (
+        <mesh
+          key={i}
+          position={[(i - 1.5) * 1.4, 0, 0]} // weiter auseinander
+        >
+          <planeGeometry args={[1.2, 0.8]} /> {/* größer */}
+          <meshStandardMaterial
+            map={tex}
+            transparent
+            toneMapped={false}
+          />
+        </mesh>
+      );
+    }
+  )}
+</group>
+
+    {/* SCHLIESSEN BUTTON */}
+    <group position={[1.5, 0.6, 0]}>
+      <RoundedBox
+        args={[0.3, 0.3, 0.1]}
+        radius={0.05}
+        onPointerDown={() => setShowInfo(false)}
+      >
+        <meshStandardMaterial color="#E53935" />
+      </RoundedBox>
+      <Text
+        position={[0, 0, 0.06]}
+        fontSize={0.12}
+        color="white"
+        anchorX="center"
+        anchorY="middle"
+      >
+        X
+      </Text>
     </group>
-  );
-}
+  </group>
+)}/</group>)}

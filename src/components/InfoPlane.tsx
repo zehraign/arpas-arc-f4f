@@ -4,16 +4,10 @@ import { useState, useRef } from "react";
 import * as THREE from "three";
 import { TextureLoader } from "three";
 
-/* =========================
-   Props
-========================= */
 interface InfoPlanesProps extends GroupProps {
   locationId: string;
 }
 
-/* =========================
-   INFO CONTENT (ORIGINAL)
-========================= */
 const infoContent: Record<string, { title: string; content: string[] }[]> = {
   algen: [
     { title: "Warum Algen?", content: ["Wachsen sehr schnell", "Brauchen kaum Ackerland, Süßwasser oder Dünger", "Schonend für Umwelt und Klima"] },
@@ -54,31 +48,40 @@ const infoContent: Record<string, { title: string; content: string[] }[]> = {
   ],
 };
 
-/* =========================
-   Wasserblasen Button
+/* =========================s
+   Flacher Bild-Button, immer zur Kamera
 ========================= */
 function WaterBubbleButton({ onClick }: { onClick: () => void }) {
-  const ref = useRef<THREE.Sprite>(null);
-  const texture = useLoader(TextureLoader, "/static/textures/water-bubble.png");
+  const ref = useRef<THREE.Mesh>(null);
   const { camera } = useThree();
+
+  const texture = useLoader(TextureLoader, "/static/textures/water-bubble.png");
 
   useFrame(({ clock }) => {
     if (!ref.current) return;
-    ref.current.position.y = Math.sin(clock.elapsedTime * 1.2) * 0.04;
-    const s = 0.55 + Math.sin(clock.elapsedTime * 2) * 0.04;
-    ref.current.scale.set(s, s, 1);
-    ref.current.quaternion.copy(camera.quaternion);
+
+    // Schweben
+    ref.current.position.y = Math.sin(clock.elapsedTime * 1.2) * 0.03;
+
+    // Immer zur Kamera ausrichten
+    const vec = camera.position.clone();
+    ref.current.lookAt(vec);
   });
 
   return (
-    <sprite ref={ref} onPointerDown={onClick}>
-      <spriteMaterial map={texture} transparent depthWrite={false} />
-    </sprite>
+    <mesh ref={ref} onPointerDown={onClick}>
+      <planeGeometry args={[0.6, 0.6]} />
+      <meshBasicMaterial
+        map={texture}
+        transparent
+        side={THREE.DoubleSide}
+      />
+    </mesh>
   );
 }
 
 /* =========================
-   InfoPlanes
+   InfoPlanes Component
 ========================= */
 export default function InfoPlanes({ locationId, ...props }: InfoPlanesProps) {
   const [showInfo, setShowInfo] = useState(false);
@@ -88,7 +91,7 @@ export default function InfoPlanes({ locationId, ...props }: InfoPlanesProps) {
     <group {...props}>
       {/* INFO BUTTON */}
       {!showInfo && (
-        <>
+        <group>
           {locationId === "quallen" ? (
             <WaterBubbleButton onClick={() => setShowInfo(true)} />
           ) : (
@@ -97,69 +100,30 @@ export default function InfoPlanes({ locationId, ...props }: InfoPlanesProps) {
                 <sphereGeometry args={[0.2, 32, 32]} />
                 <meshStandardMaterial color="#2B4E4C" />
               </mesh>
-              <Text position={[0, 0, 0.21]} fontSize={0.15} color="white">
+              <Text position={[0, 0, 0.22]} fontSize={0.15} color="white">
                 i
               </Text>
             </group>
           )}
-        </>
+        </group>
       )}
 
-      {/* INFO PANELS (ORIGINAL LAYOUT) */}
+      {/* INFO PANELS */}
       {showInfo && (
         <group>
-          {planes.map((plane, idx) => {
-            const xOffset = (idx % 3) * 0.95 - 0.95;
-            const yOffset = -Math.floor(idx / 3) * 1.5;
-
-            return (
-              <group key={idx} position={[xOffset, yOffset, 0]}>
-                <RoundedBox args={[0.9, 1.1, 0.05]} radius={0.03}>
-                  <meshStandardMaterial color="#2B4E4C" />
-                </RoundedBox>
-
-                <Text
-                  position={[0, 0.45, 0.03]}
-                  fontSize={0.08}
-                  color="white"
-                  anchorX="center"
-                  anchorY="top"
-                  maxWidth={0.85}
-                  textAlign="center"
-                  fontWeight="bold"
-                >
-                  {plane.title}
-                </Text>
-
-                <Text
-                  position={[0, 0.15, 0.03]}
-                  fontSize={0.05}
-                  color="white"
-                  anchorX="center"
-                  anchorY="top"
-                  maxWidth={0.8}
-                  textAlign="center"
-                  lineHeight={1.4}
-                >
-                  {plane.content.map((line) => `• ${line}`).join("\n")}
-                </Text>
-              </group>
-            );
-          })}
-
-          {/* CLOSE BUTTON */}
-          <group position={[1.5, 0.6, 0]}>
-            <RoundedBox
-              args={[0.3, 0.3, 0.1]}
-              radius={0.05}
-              onPointerDown={() => setShowInfo(false)}
-            >
-              <meshStandardMaterial color="#E53935" />
-            </RoundedBox>
-            <Text position={[0, 0, 0.06]} fontSize={0.12} color="white">
-              X
-            </Text>
-          </group>
+          {planes.map((plane, idx) => (
+            <group key={idx} position={[idx * 1.0 - 1.5, 0, 0]}>
+              <RoundedBox args={[0.9, 1.1, 0.05]}>
+                <meshStandardMaterial color="#2B4E4C" />
+              </RoundedBox>
+              <Text position={[0, 0.45, 0.03]} fontSize={0.08}>
+                {plane.title}
+              </Text>
+              <Text position={[0, 0.15, 0.03]} fontSize={0.05} maxWidth={0.8}>
+                {plane.content.map((l) => `• ${l}`).join("\n")}
+              </Text>
+            </group>
+          ))}
         </group>
       )}
     </group>

@@ -41,16 +41,20 @@ export const quizLocations = [
   },
 
   {
-    id: "quellen",
-    name: "Bibliothek – Quellenlabor",
+    id: "quallen",
+    name: "Bibliothek – Quallenlabor",
     coords: { lat: 52.455524445488415, lon: 13.524730308877778 }, 
-    radius: 100,
+    radius: 100, 
 
     features: {
       quiz: {
         file: "quiz_quellen.json",
       },
+    
+    puzzle: {
+      image: "/static/images/puzzle/qualle.png", //  NEU
     },
+  },
 
     button: {
       label: "Quallen-Quiz 🪼",

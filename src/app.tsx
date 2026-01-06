@@ -8,6 +8,7 @@ import QuizPlane from "./components/QuizPlane";
 import PuzzleWithBack from "./components/PuzzleWithBack";
 import IndexPage from "./pages/index";
 import InfoPlanes from "./components/InfoPlane";
+import ProgressBoard from "./components/ProgressBoard"; // STEMPELKARTE
 
 import { quizLocations } from "./data/locations";
 import { distanceInMeters } from "./utility/geo";
@@ -29,7 +30,7 @@ interface AppProps {
   topic: TopicData;
 }
 
-/* Billboard */
+/* Billboard für Text/3D-Objekte, immer zur Kamera */
 function Billboard({
   children,
   position,
@@ -65,6 +66,11 @@ export default function App({
   const [showPuzzle, setShowPuzzle] = useState(false);
   const [canStartQuiz, setCanStartQuiz] = useState(false);
 
+  // STEMPELKARTE: Badges
+  const [collectedBadges, setCollectedBadges] = useState<string[]>([]);
+  const [newBadgeText, setNewBadgeText] = useState<string | null>(null); // Popup-Text
+  const badgeTimeout = useRef<NodeJS.Timeout | null>(null);
+
   const handleEnterAR = async () => {
     await store.enterAR();
     setInAR(true);
@@ -83,6 +89,25 @@ export default function App({
       if (!found) return;
       setActiveLocation(found);
 
+     // STEMPELKARTE: Neues Badge sammeln
+const locationId = found.infoId || found.id; // ID für Badge
+if (locationId && !collectedBadges.includes(locationId)) {
+  setCollectedBadges(prev => [...prev, locationId]);
+
+  // Popup-Text setzen
+  const count = collectedBadges.length + 1;
+  let message = "";
+  if (count === 1) message = "Glückwunsch! Du hast dein erstes Badge 🎉";
+  else message = `Super! Schon dein ${count}. Badge! Mach weiter!`;
+
+  setNewBadgeText(message);
+
+  // Popup nach 6 Sekunden wieder ausblenden
+  if (badgeTimeout.current) clearTimeout(badgeTimeout.current);
+  badgeTimeout.current = setTimeout(() => setNewBadgeText(null), 6000); // 6 Sekunden
+}
+
+      // Quiz laden
       if (found.features?.quiz) {
         const loader = quizzes[`./data/${found.features.quiz.file}`];
         const data = await loader();
@@ -92,7 +117,7 @@ export default function App({
         setCanStartQuiz(false);
       }
     });
-  }, [inAR]);
+  }, [inAR, collectedBadges]);
 
   return (
     <>
@@ -110,12 +135,43 @@ export default function App({
           <IfInSessionMode allow="immersive-ar">
             <IndexPage contentTypes={content_types} sceneData={scene} topicData={topic} />
 
+            {/* STEMPELKARTE */}
+            <Billboard position={[0, 1.2, -1.2]}>
+              <ProgressBoard collected={collectedBadges} />
+            </Billboard>
+
+            {/* STEMPELKARTE: Popup für neues Badge */}
+            {newBadgeText && (
+              <Billboard position={[0, 1.5, -1.2]}>
+                <group scale={[0.8, 0.8, 0.8]}>
+                  <RoundedBox args={[1.8, 0.4, 0.05]} radius={0.05}>
+                    <meshStandardMaterial color="#caedea" />
+                  </RoundedBox>
+                  <Text
+                    position={[0, 0, 0.03]}
+                    fontSize={0.07}
+                    color="#326661" // algen grün
+                    anchorX="center"
+                    anchorY="middle"
+                    maxWidth={1.6}
+                    textAlign="center"
+                  >
+                    {newBadgeText}
+                  </Text>
+                </group>
+              </Billboard>
+            )}
+
+            {/* Standort-Buttons */}
             {activeLocation && !showQuiz && !showPuzzle && (
               <group position={[0, 1, -1.4]}>
                 {canStartQuiz && activeLocation.features?.quiz && (
                   <group position={[-0.6, 0, -1]}>
-                    <RoundedBox args={[0.9, 0.32, 0.08]} radius={0.06}
-                      onPointerDown={() => setShowQuiz(true)}>
+                    <RoundedBox
+                      args={[0.9, 0.32, 0.08]}
+                      radius={0.06}
+                      onPointerDown={() => setShowQuiz(true)}
+                    >
                       <meshStandardMaterial color={activeLocation.button?.color} />
                     </RoundedBox>
                     <Text position={[0, 0, 0.06]} fontSize={0.065} color="white">
@@ -126,8 +182,11 @@ export default function App({
 
                 {activeLocation.features?.puzzle && (
                   <group position={[0.6, 0, -1]}>
-                    <RoundedBox args={[0.9, 0.32, 0.08]} radius={0.06}
-                      onPointerDown={() => setShowPuzzle(true)}>
+                    <RoundedBox
+                      args={[0.9, 0.32, 0.08]}
+                      radius={0.06}
+                      onPointerDown={() => setShowPuzzle(true)}
+                    >
                       <meshStandardMaterial color="#3c8c40" />
                     </RoundedBox>
                     <Text position={[0, 0, 0.06]} fontSize={0.065} color="white">
@@ -138,10 +197,14 @@ export default function App({
               </group>
             )}
 
+            {/* Quiz & Puzzle */}
             {showQuiz && quizData && (
-              <QuizPlane questions={quizData} position={[0, 1, -1.7]} onClose={() => setShowQuiz(false)} />
+              <QuizPlane
+                questions={quizData}
+                position={[0, 1, -1.7]}
+                onClose={() => setShowQuiz(false)}
+              />
             )}
-
             {showPuzzle && activeLocation?.features?.puzzle && (
               <PuzzleWithBack
                 imageUrl={activeLocation.features.puzzle.image}
@@ -149,6 +212,7 @@ export default function App({
               />
             )}
 
+            {/* Info-Panels */}
             {activeLocation?.infoId && (
               <Billboard position={[3, 0.5, -1]}>
                 <InfoPlanes locationId={activeLocation.infoId} />

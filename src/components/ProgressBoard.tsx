@@ -6,7 +6,7 @@ interface ProgressBoardProps {
 }
 
 /**
- * 3D Fortschrittsanzeige / Stempelkarte
+ * 3D Fortschrittsanzeige / Stempelkarte 
  * Zeigt pro Standort ein Badge
  */
 export default function ProgressBoard({ collected }: ProgressBoardProps) {

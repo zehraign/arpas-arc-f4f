@@ -59,6 +59,7 @@ export default function App({
   scene,
   topic,
 }: AppProps) {
+  const [showInfo, setShowInfo] = useState(false); // INFOPLANE ERGÄNZT
   const [inAR, setInAR] = useState(false);
   const [activeLocation, setActiveLocation] = useState<any | null>(null);
   const [quizData, setQuizData] = useState<any[] | null>(null);
@@ -131,18 +132,62 @@ if (locationId && !collectedBadges.includes(locationId)) {
       )}
 
       <Canvas>
+
+
+
+      <ambientLight intensity={0.8} />   {/* Gleichmäßiges Grundlicht */}
+<directionalLight
+  position={[5, 5, 5]}
+  intensity={1}
+  castShadow
+  shadow-mapSize-width={1024}
+  shadow-mapSize-height={1024}
+/>
+<directionalLight
+  position={[-5, 5, -5]}
+  intensity={0.6}
+/>
+
+
+
+
         <XR store={store}>
           <IfInSessionMode allow="immersive-ar">
-            <IndexPage contentTypes={content_types} sceneData={scene} topicData={topic} />
+
+
+{/* InfoPlanes */}
+{activeLocation?.infoId && showInfo && (
+        <group>
+          
+          <Billboard position={[3, 0.5, -1]}>
+            <InfoPlanes
+              locationId={activeLocation.infoId}
+              showInfo={showInfo}
+              setShowInfo={setShowInfo}
+            />
+          </Billboard>
+        </group>
+      )}
+
+
+          {!showInfo && (         // Hinzugefügt infoplanes 
+  <IndexPage
+    contentTypes={content_types}
+    sceneData={scene}
+    topicData={topic}
+  />
+)}
 
             {/* STEMPELKARTE */}
-            <Billboard position={[0, 1.2, -1.2]}>
-              <ProgressBoard collected={collectedBadges} />
-            </Billboard>
+           {!showInfo && (
+  <Billboard position={[0, 1.2, -1.2]}>
+    <ProgressBoard collected={collectedBadges} />
+  </Billboard>
+)}
 
             {/* STEMPELKARTE: Popup für neues Badge */}
-            {newBadgeText && (
-              <Billboard position={[0, 1.5, -1.2]}>
+            {newBadgeText && !showInfo && (
+  <Billboard position={[0, 1.5, -1.2]}>
                 <group scale={[0.8, 0.8, 0.8]}>
                   <RoundedBox args={[1.8, 0.4, 0.05]} radius={0.05}>
                     <meshStandardMaterial color="#caedea" />
@@ -163,7 +208,7 @@ if (locationId && !collectedBadges.includes(locationId)) {
             )}
 
             {/* Standort-Buttons */}
-            {activeLocation && !showQuiz && !showPuzzle && (
+            {activeLocation && !showQuiz && !showPuzzle && !showInfo && (
               <group position={[0, 1, -1.4]}>
                 {canStartQuiz && activeLocation.features?.quiz && (
                   <group position={[-0.6, 0, -1]}>
@@ -198,26 +243,30 @@ if (locationId && !collectedBadges.includes(locationId)) {
             )}
 
             {/* Quiz & Puzzle */}
-            {showQuiz && quizData && (
+            {showQuiz && quizData && !showInfo && (
               <QuizPlane
                 questions={quizData}
                 position={[0, 1, -1.7]}
                 onClose={() => setShowQuiz(false)}
               />
             )}
-            {showPuzzle && activeLocation?.features?.puzzle && (
+           {showPuzzle && activeLocation?.features?.puzzle && !showInfo && (
               <PuzzleWithBack
                 imageUrl={activeLocation.features.puzzle.image}
                 onBack={() => setShowPuzzle(false)}
               />
             )}
 
-            {/* Info-Panels */}
-            {activeLocation?.infoId && (
-              <Billboard position={[3, 0.5, -1]}>
-                <InfoPlanes locationId={activeLocation.infoId} />
-              </Billboard>
-            )}
+           {/* Info-Panels */}
+{activeLocation?.infoId && (
+  <Billboard position={[3, 0.5, -1]}>
+    <InfoPlanes
+      locationId={activeLocation.infoId}
+      showInfo={showInfo}
+      setShowInfo={setShowInfo}
+    />
+  </Billboard>
+)}
           </IfInSessionMode>
         </XR>
       </Canvas>

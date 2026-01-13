@@ -2,39 +2,56 @@
     {
         "id": "campus-entry",
         "name": "Campusentry",
+        "lat": 52.4570181643306,
+        "lng": 13.526393269931924,
         "geo": {
-            "lat": 52.4570181643306, 
+            "lat": 52.4570181643306,
             "lon": 13.526393269931924,
             "radiusM": 40
         }
     },
     {
         "id": "cafeteria",
-        "name": "Cafeteria",
+        "name": "Mensa",
+        "lat": 52.45573,
+        "lng": 13.52483,
         "geo": {
-            "lat": 52.45573, 
+            "lat": 52.45573,
             "lon": 13.52483,
             "radiusM": 40
         }
     },
     {
         "id": "library",
-        "name": "Library",
+        "name": "Bibliothek",
+        "lat": 52.45557040797938,
+        "lng": 13.525173191493593,
         "geo": {
-            "lat": 52.45557040797938, 
+            "lat": 52.45557040797938,
             "lon": 13.525173191493593,
             "radiusM": 40
         }
     },
     {
         "id": "h-gebäude",
-        "name": "H-Bebäude",
+        "name": "Gebäude H",
+        "lat": 52.45594,
+        "lng": 13.52566,
         "geo": {
-            "lat": 52.540636660690225,  
-            "lon":13.391817612557453 , 
-            "radiusM": 500
-          
+            "lat": 52.45594,
+            "lon": 13.52566,
+            "radiusM": 40
+        }
+    },
+    {
+        "id": "c-gebäude",
+        "name": "Gebäude C",
+        "lat": 52.45532,
+        "lng": 13.52598,
+        "geo": {
+            "lat": 52.45532,
+            "lon": 13.52598,
+            "radiusM": 40
         }
     }
-
 ]

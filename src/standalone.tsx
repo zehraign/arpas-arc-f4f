@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./app";
 import "./style.css"
+import "leaflet/dist/leaflet.css";
 import { ContentTypes } from "./utility/mockData";
 import { BenchScene as SceneData, BenchTopic as TopicData } from "./utility/mockData";
 

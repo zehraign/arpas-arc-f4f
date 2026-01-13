@@ -59,11 +59,12 @@ export const BenchScene: SceneData = {
                 },
             ],
         },
-        { // duaa koordinaten  "lat": 52.540636660690225, "lon":13.391817612557453 ,
+        { // duaa koordinaten  "lat": 52.540636660690225, "lon":13.391817612557453 , zehra 52.451405444313316, 13.477409860925572
+            // h  52.540636660690225, 13.391817612557453
             id: 206,
             name: "Library Algen Tank",
             qr_id: "library-algen-tank",
-            coordinates: [ 52.540636660690225, 13.391817612557453, 0], // ...auf H Gebäude stellen ?
+            coordinates: [52.451405444313316, 13.477409860925572, 0], // ...auf H Gebäude stellen ?
             comments: [],
             variants: [
                 {

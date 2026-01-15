@@ -1,0 +1,61 @@
+.osm-navigator {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-family: "DM Sans", "Fira Sans", "Helvetica Neue", sans-serif;
+  color: #0f172a;
+}
+
+.osm-nav__info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  font-size: 0.9rem;
+}
+
+.osm-nav__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.osm-nav__actions button {
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid #0f172a;
+  background: #c7fec7b8;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.osm-nav__actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.osm-nav__map {
+  height: 420px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+}
+
+.osm-nav__map .leaflet-container {
+  width: 100%;
+  height: 100%;
+}
+
+.osm-nav__hint {
+  color: #b45309;
+  font-weight: 600;
+}
+
+@media (max-width: 720px) {
+  .osm-nav__map {
+    height: 320px;
+  }
+}

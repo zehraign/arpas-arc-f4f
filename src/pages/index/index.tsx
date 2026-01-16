@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useCallback, useState, useRef } from "react";
+import { useEffect, useLayoutEffect, useMemo, useCallback, useState } from "react";
 import { useXRInputSourceEvent, useXRStore, XRDomOverlay } from "@react-three/xr";
 import * as THREE from "three";
 import { Header, Footer, DirectionalArrow, HelpMenu, ObjectDescription } from "../../components-ui";
@@ -52,6 +52,7 @@ const IndexPage = ({ contentTypes, sceneData, topicData, minioData }:
     // UI values
     const fontSize = 22;
     const [isHelpVisible, setIsHelpVisible] = useState(false);
+    const [showArHeader, setShowArHeader] = useState(false);
     const [headerHeight, setHeaderHeight] = useState(0);
 
     // Location values
@@ -205,7 +206,10 @@ const IndexPage = ({ contentTypes, sceneData, topicData, minioData }:
 
     return (
         <>
-            <XRDomOverlay style={{ width: "100%", height: "100%", fontSize: `${fontSize}px`, boxSizing: "border-box" }}>
+            <XRDomOverlay
+                style={{ width: "100%", height: "100%", fontSize: `${fontSize}px`, boxSizing: "border-box" }}
+                onClick={() => setShowArHeader((prev) => !prev)}
+            >
                 <div className="xr-message-stack">
                     {messages.map((msg) => (
                         <div key={msg.id} className="xr-loading-label py-2 px-3 fw-bold text-center" style={{ fontSize: `${fontSize * 0.8}px`, color: msg.color ?? "white" }}>
@@ -215,12 +219,14 @@ const IndexPage = ({ contentTypes, sceneData, topicData, minioData }:
                 </div>
 
                 {/* Header */}
-                <Header
-                    isHelpVisible={isHelpVisible}
-                    onToggleHelp={() => setIsHelpVisible((v) => !v)}
-                    onLeave={() => store.getState().session?.end()}
-                    fontSize={fontSize}
-                />
+                <div className={`ar-header${showArHeader ? " ar-header--visible" : ""}`}>
+                    <Header
+                        isHelpVisible={isHelpVisible}
+                        onToggleHelp={() => setIsHelpVisible((v) => !v)}
+                        onLeave={() => store.getState().session?.end()}
+                        fontSize={fontSize}
+                    />
+                </div>
                 <CharacterOverlay
                     lines={characterLines}
                     characterImageSrc={`${import.meta.env.BASE_URL}images/character/guide.png`}

@@ -8,7 +8,8 @@ import PuzzleWithBack from "./components/PuzzleWithBack";
 import IndexPage from "./pages/index";
 import InfoPlanes from "./components/InfoPlane";
 import NavigationOverlay from "./navigation/NavigationOverlay";
-import NavigationFab from "./navigation/NavigationFab";
+import MiniMapPreview from "./navigation/MiniMapPreview";
+import { NavigationModelProvider } from "./navigation/NavigationModelContext";
 import { NavigationOverlayProvider, useNavigationOverlay } from "./navigation/NavigationOverlayContext";
 
 import { quizLocations } from "./data/locations";
@@ -78,6 +79,16 @@ function XrSessionSync({ onChange }: { onChange: (active: boolean) => void }) {
     return null;
 }
 
+function DomOverlayRootSync({ onChange }: { onChange: (root: Element | null) => void }) {
+    const domOverlayRoot = useXR((state) => state.domOverlayRoot);
+
+    useEffect(() => {
+        onChange(domOverlayRoot ?? null);
+    }, [domOverlayRoot, onChange]);
+
+    return null;
+}
+
 /* App */
 export default function App({
     buttonClassName = "start-button",
@@ -94,11 +105,19 @@ export default function App({
     const [showPuzzle, setShowPuzzle] = useState(false);
     const [canStartQuiz, setCanStartQuiz] = useState(false);
     const [xrSessionActive, setXrSessionActive] = useState(false);
+    const [domOverlayRoot, setDomOverlayRoot] = useState<Element | null>(null);
+    const inARMode = inAR;
+    const [domOverlayReady, setDomOverlayReady] = useState(false);
+    const navPortalRoot = xrSessionActive && domOverlayReady ? domOverlayRoot : null;
 
     /* ENTER AR */
     const handleEnterAR = async () => {
-        await store.enterAR();
         setInAR(true);
+        try {
+            await store.enterAR();
+        } catch (error) {
+            console.warn("XR session konnte nicht gestartet werden:", error);
+        }
     };
     const base = import.meta.env.BASE_URL;
     const frames = useMemo(
@@ -168,6 +187,33 @@ export default function App({
         });
     }, [inAR]);
 
+    useEffect(() => {
+        if (!xrSessionActive || !domOverlayRoot) {
+            setDomOverlayReady(false);
+            return;
+        }
+
+        let rafId = 0;
+        let tries = 0;
+        const maxTries = 10;
+        const checkReady = () => {
+            tries += 1;
+            if (!(domOverlayRoot instanceof HTMLElement)) {
+                setDomOverlayReady(true);
+                return;
+            }
+            const rect = domOverlayRoot.getBoundingClientRect();
+            const isVisible = domOverlayRoot.style.display !== "none" && rect.width > 0 && rect.height > 0;
+            setDomOverlayReady(isVisible);
+            if (!isVisible && tries < maxTries) {
+                rafId = requestAnimationFrame(checkReady);
+            }
+        };
+
+        rafId = requestAnimationFrame(checkReady);
+        return () => cancelAnimationFrame(rafId);
+    }, [xrSessionActive, domOverlayRoot]);
+
     return (
         <NavigationOverlayProvider>
             {/* START UI (NICHT AR) */}
@@ -211,6 +257,7 @@ export default function App({
             >
                 <XR store={store}>
                     <XrSessionSync onChange={setXrSessionActive} />
+                    <DomOverlayRootSync onChange={setDomOverlayRoot} />
                     <IfInSessionMode allow="immersive-ar">
                         {/* Szene */}
                         <IndexPage contentTypes={content_types} sceneData={scene} topicData={topic} />
@@ -287,9 +334,16 @@ export default function App({
                 </XR>
             </Canvas>
 
-            <NavigationOverlayStateSync isArActive={xrSessionActive} />
-            <NavigationOverlay />
-            {xrSessionActive && <NavigationFab />}
+            <NavigationOverlayStateSync isArActive={inARMode} />
+            {inARMode && (
+                <NavigationModelProvider>
+                    <MiniMapPreview isArActive={inARMode} portalRoot={navPortalRoot} />
+                    <NavigationOverlay
+                        portalRoot={navPortalRoot}
+                        showSessionWarning={inARMode && !xrSessionActive}
+                    />
+                </NavigationModelProvider>
+            )}
         </NavigationOverlayProvider>
     );
 }

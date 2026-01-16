@@ -64,7 +64,7 @@ export const BenchScene: SceneData = {
             id: 206,
             name: "Library Algen Tank",
             qr_id: "library-algen-tank",
-            coordinates: [52.451405444313316, 13.477409860925572, 0], // ...auf H Gebäude stellen ?
+            coordinates: [52.451405444313316, 13.477409860925572, 0], 
             comments: [],
             variants: [
                 {

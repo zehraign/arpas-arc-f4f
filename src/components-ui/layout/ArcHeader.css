@@ -1,4 +1,21 @@
 /* Header bars */
+#arc-logo-header,
+#arc-header {
+    transition: opacity 0.2s ease;
+}
+
+.ar-header #arc-logo-header,
+.ar-header #arc-header {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.ar-header.ar-header--visible #arc-logo-header,
+.ar-header.ar-header--visible #arc-header {
+    opacity: 1;
+    pointer-events: auto;
+}
+
 #arc-logo-header {
     position: fixed;
     top: 0;

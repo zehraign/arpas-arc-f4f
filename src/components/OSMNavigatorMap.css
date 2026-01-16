@@ -3,18 +3,23 @@
   flex-direction: column;
   gap: 12px;
   font-family: "DM Sans", "Fira Sans", "Helvetica Neue", sans-serif;
-  color: #0f172a;
+  color: var(--text, #0f172a);
+  height: 100%;
+  flex: 1;
+  min-height: 0;
 }
 
 .osm-nav__info {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 12px;
+  gap: 4px;
+  padding: 8px 10px;
   border-radius: 12px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  font-size: 0.9rem;
+  background: var(--surface, #ffffff);
+  border: 1px solid var(--border, #e2e8f0);
+  font-size: 0.82rem;
+  line-height: 1.2;
+  word-break: break-word;
 }
 
 .osm-nav__actions {
@@ -24,12 +29,17 @@
 }
 
 .osm-nav__actions button {
-  padding: 8px 12px;
+  padding: 6px 10px;
   border-radius: 999px;
-  border: 1px solid #0f172a;
-  background: #c7fec7b8;
+  border: 1px solid var(--accent-dark, #047857);
+  background: var(--accent, #10b981);
+  color: #ffffff;
   font-weight: 600;
   cursor: pointer;
+}
+
+.osm-nav__actions button:hover:not(:disabled) {
+  background: var(--accent-dark, #047857);
 }
 
 .osm-nav__actions button:disabled {
@@ -38,10 +48,11 @@
 }
 
 .osm-nav__map {
-  height: 420px;
+  flex: 1;
+  min-height: 320px;
   border-radius: 14px;
   overflow: hidden;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border, #e2e8f0);
 }
 
 .osm-nav__map .leaflet-container {
@@ -54,8 +65,59 @@
   font-weight: 600;
 }
 
+/* React-Leaflet: className landet auf .leaflet-popup */
+.leaflet-popup.osm-nav__popup,
+.leaflet-popup.osm-nav__popup .leaflet-popup-content-wrapper,
+.leaflet-popup.osm-nav__popup .leaflet-popup-content,
+.leaflet-popup.osm-nav__popup .leaflet-popup-content p {
+  height: auto !important;
+  min-height: 0 !important;
+}
+
+.leaflet-popup.osm-nav__popup .leaflet-popup-content-wrapper {
+  display: inline-block !important;
+  width: auto !important;
+  padding: 6px 10px !important;
+  border-radius: 14px !important;
+}
+
+.leaflet-popup.osm-nav__popup .leaflet-popup-content {
+  display: inline-block !important;
+  width: auto !important;
+  margin: 0 !important;
+  font-size: 14px !important;   /* wie Leaflet Demo */
+  line-height: 1.25 !important;
+  max-width: 220px !important;
+  white-space: normal !important;
+}
+
+.leaflet-popup.osm-nav__popup .leaflet-popup-tip {
+  border-radius: 6px !important;
+}
+
+/* kill global p margins, falls welche reinfunken */
+.leaflet-popup.osm-nav__popup .leaflet-popup-content p {
+  margin: 0 !important;
+}
+
+
+.osm-navigator--mini {
+  height: 100%;
+  gap: 0;
+}
+
+.osm-navigator--mini .osm-nav__map {
+  height: 100%;
+  border-radius: 12px;
+  border: none;
+}
+
+.osm-navigator--mini .leaflet-container {
+  pointer-events: none;
+}
+
 @media (max-width: 720px) {
   .osm-nav__map {
-    height: 320px;
+    min-height: 240px;
   }
 }

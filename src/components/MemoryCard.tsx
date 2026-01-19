@@ -1,57 +1,208 @@
-import { RoundedBox, Text } from "@react-three/drei";
-import { MemoryCategory } from "../data/memoryCards";
+/*flip import { useRef } from "react";
+import { useFrame, useThree, GroupProps } from "@react-three/fiber";
+import { RoundedBox, useTexture } from "@react-three/drei";
+import * as THREE from "three";
 
-interface MemoryCardProps {
-  category: MemoryCategory;
+interface MemoryCardProps extends GroupProps {
+  image: string;
   isFlipped: boolean;
   isMatched: boolean;
-  position: [number, number, number];
   onClick: () => void;
 }
 
-const CATEGORY_EMOJI: Record<MemoryCategory, string> = {
-  Grillen: "🦗",
-  Algen: "🌱",
-  Salzpflanzen: "🧂",
-  Quallen: "🪼",
-};
-
 export default function MemoryCard({
-  category,
+  image,
   isFlipped,
   isMatched,
-  position,
   onClick,
+  ...props
 }: MemoryCardProps) {
+  const outerRef = useRef<THREE.Group>(null);
+  const innerRef = useRef<THREE.Group>(null);
+  const { camera } = useThree();
+
+  // Textur laden
+  const texture = useTexture(image);
+
+  useFrame((state, delta) => {
+    if (!outerRef.current || !innerRef.current) return;
+
+    // 1. Billboard: Die Karte schaut immer zum User
+    outerRef.current.lookAt(
+      camera.position.x,
+      outerRef.current.position.y,
+      camera.position.z
+    );
+
+    // 2. Flip-Animation
+    // Ziel-Rotation: 180 Grad (Math.PI) wenn umgedreht, sonst 0
+    const targetRotation = isFlipped ? Math.PI : 0;
+    
+    // Geschmeidiges Drehen mit lerp
+    innerRef.current.rotation.y = THREE.MathUtils.lerp(
+      innerRef.current.rotation.y,
+      targetRotation,
+      delta * 10 // Geschwindigkeit der Drehung
+    );
+  });
+
+  if (isMatched) return null;
+
   return (
-    <group position={position}>
-      <RoundedBox
-        args={[0.25, 0.25, 0.04]}
-        radius={0.04}
-        onPointerDown={onClick}
+    <group ref={outerRef} {...props}>
+      {/* Diese Gruppe wird gedreht /}
+      <group 
+        ref={innerRef} 
+        onPointerDown={(e) => {
+          e.stopPropagation();
+          if (!isFlipped) onClick();
+        }}
       >
-        <meshStandardMaterial
-          color={
-            isMatched
-              ? "#75a839"
-              : isFlipped
-              ? "#ffffff"
-              : "#1f3f2e"
-          }
-        />
+        {/* KARTENRÜCKEN (Blaue Box) /}
+        <RoundedBox args={[0.28, 0.38, 0.04]} radius={0.03}>
+          <meshStandardMaterial color="#1c3d5a" />
+        </RoundedBox>
+
+        {/* BILD-SEITE (Einfach flach auf der Rückseite) /}
+        <mesh position={[0, 0, -0.021]} rotation={[0, Math.PI, 0]}>
+          <planeGeometry args={[0.24, 0.34]} />
+          <meshBasicMaterial map={texture} />
+        </mesh>
+      </group>
+    </group>
+  );
+}*/
+/* cache loading
+import { useRef } from "react";
+import { useFrame, useThree, GroupProps } from "@react-three/fiber";
+import { RoundedBox } from "@react-three/drei";
+import * as THREE from "three";
+
+interface MemoryCardProps extends GroupProps {
+  texture: THREE.Texture; // Wir übergeben das fertige Texture-Objekt
+  isFlipped: boolean;
+  isMatched: boolean;
+  onClick: () => void;
+}
+
+export default function MemoryCard({
+  texture,
+  isFlipped,
+  isMatched,
+  onClick,
+  ...props
+}: MemoryCardProps) {
+  const ref = useRef<THREE.Group>(null);
+  const { camera } = useThree();
+
+  // Karte horizontal zur Kamera drehen
+  useFrame(() => {
+    if (!ref.current) return;
+    ref.current.lookAt(
+      camera.position.x,
+      ref.current.position.y,
+      camera.position.z
+    );
+  });
+
+  if (isMatched) return null;
+
+  return (
+    <group
+      ref={ref}
+      {...props}
+      onPointerDown={isFlipped ? undefined : onClick}
+    >
+      {/* 1. KARTENRÜCKEN /}
+      <RoundedBox args={[0.28, 0.38, 0.04]} radius={0.03}>
+        <meshStandardMaterial color="#1c3d5a" />
       </RoundedBox>
 
+      {/* 2. VORDERSEITE (BILD) /}
       {isFlipped && (
-        <Text
-          position={[0, 0, 0.05]}
-          fontSize={0.08}
-          anchorX="center"
-          anchorY="middle"
+        <RoundedBox 
+          args={[0.24, 0.34, 0.005]} // Sehr flache Box für das Bild
+          radius={0.03}              // Gleiche Abrundung wie die Karte
+          position={[0, 0, 0.021]}   // Minimal vor dem Kartenrücken
         >
-          {CATEGORY_EMOJI[category]}
-        </Text>
+          <meshBasicMaterial map={texture} transparent={true} />
+        </RoundedBox>
       )}
     </group>
   );
+}*/
+
+import { useRef } from "react";
+import { useFrame, useThree, GroupProps } from "@react-three/fiber";
+import { RoundedBox, Image } from "@react-three/drei";
+import * as THREE from "three";
+
+interface MemoryCardProps extends GroupProps {
+  image: string;
+  isFlipped: boolean;
+  isMatched: boolean;
+  onClick: () => void;
 }
 
+export default function MemoryCard({
+  image,
+  isFlipped,
+  isMatched,
+  onClick,
+  ...props
+}: MemoryCardProps) {
+  const outerRef = useRef<THREE.Group>(null);
+  const innerRef = useRef<THREE.Group>(null);
+  const { camera } = useThree();
+
+  useFrame((state, delta) => {
+    if (!outerRef.current || !innerRef.current) return;
+
+    // 1. Billboard: Nur horizontal zur Kamera drehen
+    outerRef.current.lookAt(
+      camera.position.x,
+      outerRef.current.position.y,
+      camera.position.z
+    );
+
+    // 2. Flip-Animation: Ziel-Rotation (180 Grad wenn flipped, sonst 0)
+    const targetRotation = isFlipped ? Math.PI : 0;
+    
+    // Smooth Drehung mit lerp
+    innerRef.current.rotation.y = THREE.MathUtils.lerp(
+      innerRef.current.rotation.y,
+      targetRotation,
+      delta * 10
+    );
+  });
+
+  if (isMatched) return null;
+
+  return (
+    <group ref={outerRef} {...props}>
+      {/* Die innere Gruppe wird gedreht */}
+      <group 
+        ref={innerRef}
+        onPointerDown={(e) => {
+          e.stopPropagation();
+          if (!isFlipped) onClick();
+        }}
+      >
+        {/* Kartenrücken */}
+        <RoundedBox args={[0.28, 0.38, 0.04]} radius={0.03}>
+          <meshStandardMaterial color="#1c3d5a" />
+        </RoundedBox>
+
+        {/* Vorderseite (Bild) */}
+        {/* Wir rendern das Bild jetzt immer, aber es ist auf der Rückseite montiert */}
+        <group rotation={[0, Math.PI, 0]} position={[0, 0, -0.021]}>
+          <Image
+            url={image}
+            scale={[0.24, 0.34]}
+            transparent
+          />
+        </group>
+      </group>
+    </group>
+  );
+}

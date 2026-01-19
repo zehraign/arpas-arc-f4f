@@ -1,31 +1,127 @@
+// data/memoryCards.ts
 export type MemoryCategory =
-  | "Grillen"
-  | "Algen"
-  | "Salzpflanzen"
-  | "Quallen";
+  | "grillen"
+  | "algen"
+  | "salzpflanzen"
+  | "makroquallen";
 
 export interface MemoryCardData {
   id: number;
-  category: MemoryCategory;
   pairId: number;
-  position: [number, number, number];
+  image: string;
+  category: MemoryCategory;
 }
 
 export const memoryCards: MemoryCardData[] = [
-  // 🦗 Grillen
-  { id: 1, category: "Grillen", pairId: 1, position: [-0.8, 0.3, -1.2] },
-  { id: 2, category: "Grillen", pairId: 1, position: [-0.2, 0.5, -1.5] },
+  // =======================
+  // GRILLEN (2 Paare)
+  // =======================
+  {
+    id: 1,
+    pairId: 1,
+    category: "grillen",
+    image: "/static/images/memory/grillen.jpg",
+  },
+  {
+    id: 2,
+    pairId: 1,
+    category: "grillen",
+    image: "/static/images/memory/grillen.jpg",
+  },
+  {
+    id: 3,
+    pairId: 2,
+    category: "grillen",
+    image: "/static/images/memory/grillen2.jpg",
+  },
+  {
+    id: 4,
+    pairId: 2,
+    category: "grillen",
+    image: "/static/images/memory/grillen2.jpg",
+  },
 
-  // 🌱 Algen
-  { id: 3, category: "Algen", pairId: 2, position: [0.6, 0.4, -1.3] },
-  { id: 4, category: "Algen", pairId: 2, position: [0.2, 0.1, -1.7] },
+  // =======================
+  // ALGEN (2 Paare)
+  // =======================
+  {
+    id: 5,
+    pairId: 3,
+    category: "algen",
+    image: "/static/images/memory/algen.jpg",
+  },
+  {
+    id: 6,
+    pairId: 3,
+    category: "algen",
+    image: "/static/images/memory/algen.jpg",
+  },
+  {
+    id: 7,
+    pairId: 4,
+    category: "algen",
+    image: "/static/images/memory/algen2.jpg",
+  },
+  {
+    id: 8,
+    pairId: 4,
+    category: "algen",
+    image: "/static/images/memory/algen2.jpg",
+  },
 
-  // 🧂 Salzpflanzen
-  { id: 5, category: "Salzpflanzen", pairId: 3, position: [-0.5, -0.3, -1.6] },
-  { id: 6, category: "Salzpflanzen", pairId: 3, position: [0.1, -0.4, -1.2] },
+  // =======================
+  // SALZPFLANZEN (2 Paare)
+  // =======================
+  {
+    id: 9,
+    pairId: 5,
+    category: "salzpflanzen",
+    image: "/static/images/memory/salzpflanzen.jpg",
+  },
+  {
+    id: 10,
+    pairId: 5,
+    category: "salzpflanzen",
+    image: "/static/images/memory/salzpflanzen.jpg",
+  },
+  {
+    id: 11,
+    pairId: 6,
+    category: "salzpflanzen",
+    image: "/static/images/memory/salzpflanzen2.jpg",
+  },
+  {
+    id: 12,
+    pairId: 6,
+    category: "salzpflanzen",
+    image: "/static/images/memory/salzpflanzen2.jpg",
+  },
 
-  // 🪼 Quallen
-  { id: 7, category: "Quallen", pairId: 4, position: [0.7, -0.2, -1.4] },
-  { id: 8, category: "Quallen", pairId: 4, position: [0.3, -0.6, -1.8] },
+  // =======================
+  // MAKROQUALLEN (2 Paare)
+  // =======================
+  {
+    id: 13,
+    pairId: 7,
+    category: "makroquallen",
+    image: "/static/images/memory/quallen.jpg",
+  },
+  {
+    id: 14,
+    pairId: 7,
+    category: "makroquallen",
+    image: "/static/images/memory/quallen.jpg",
+  },
+  {
+    id: 15,
+    pairId: 8,
+    category: "makroquallen",
+    image: "/static/images/memory/quallen2.jpg",
+  },
+  {
+    id: 16,
+    pairId: 8,
+    category: "makroquallen",
+    image: "/static/images/memory/quallen2.jpg",
+  },
 ];
-

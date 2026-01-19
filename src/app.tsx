@@ -120,23 +120,21 @@ const [newBadgeText, setNewBadgeText] = useState<string | null>(null);
 const [shownBadgePopups, setShownBadgePopups] = useState<string[]>([]);
 const badgeTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-const collectBadgeSilent = (id: string) => {
+const collectBadgeSilent = (id: string, callback?: () => void) => {
   if (!id || collectedBadges.includes(id)) return;
-  setCollectedBadges((p) => [...p, id]);
+  setCollectedBadges((p) => {
+    const newBadges = [...p, id];
+    if (callback) callback(); // Popup direkt nach Hinzufügen
+    return newBadges;
+  });
 };
-
 const showBadgePopup = (locationId: string) => {
   if (!locationId) return;
 
   // ⛔ Popup schon gezeigt? Dann nix tun
   if (shownBadgePopups.includes(locationId)) return;
 
-  // ⛔ Badge existiert noch gar nicht
-  if (!collectedBadges.includes(locationId)) return;
-
-  const count = collectedBadges.length;
-  if (count <= 0) return;
-
+  const count = collectedBadges.length + 1; // +1 weil wir es gerade gesammelt haben
   let message = "";
   if (count === 1) {
     message = "Glückwunsch! Du hast dein erstes Badge 🎉";
@@ -335,10 +333,8 @@ return (
                   <RoundedBox
                     args={[0.9, 0.32, 0.08]}
                     radius={0.06}
-                    onPointerDown={() => {
-                      setShowQuiz(true);
-                      collectBadgeSilent(activeLocation.infoId || activeLocation.id);
-                    }}
+                    onPointerDown={() => setShowQuiz(true)}
+                    
                   >
                     <meshStandardMaterial color={activeLocation.button?.color} />
                   </RoundedBox>
@@ -353,10 +349,8 @@ return (
                   <RoundedBox
                     args={[0.9, 0.32, 0.08]}
                     radius={0.06}
-                    onPointerDown={() => {
-                      setShowPuzzle(true);
-                      collectBadgeSilent(activeLocation.infoId || activeLocation.id);
-                    }}
+                    onPointerDown={() => setShowPuzzle(true)}
+                     
                   >
                     <meshStandardMaterial color="#3c8c40" />
                   </RoundedBox>
@@ -370,42 +364,48 @@ return (
 
           {/* QUIZ */}
           {showQuiz && quizData && !showInfo && (
-            <QuizPlane
-              questions={quizData}
-              position={[0, 1, -1.7]}
-              onClose={() => {
-                setShowQuiz(false);
-                showBadgePopup(activeLocation.infoId || activeLocation.id);
-              }}
-            />
+           <QuizPlane
+           questions={quizData}
+           position={[0, 1, -1.7]}
+           // Quiz
+onClose={(completed: boolean) => {
+  setShowQuiz(false);
+  if (completed && activeLocation) {
+    const locationId = activeLocation.infoId || activeLocation.id;
+
+    // Badge sammeln und Popup direkt danach
+    collectBadgeSilent(locationId, () => showBadgePopup(locationId));
+  }
+}}
+         />
           )}
 
           {/* PUZZLE */}
-          {showPuzzle && activeLocation?.features?.puzzle && !showInfo && (
-            <PuzzleWithBack
-              imageUrl={activeLocation.features.puzzle.image}
-              onBack={() => {
-                setShowPuzzle(false);
-                showBadgePopup(activeLocation.infoId || activeLocation.id);
-              }}
-            />
-          )}
+{showPuzzle && activeLocation?.features?.puzzle && !showInfo && (
+ <PuzzleWithBack
+ imageUrl={activeLocation.features.puzzle.image}
+ // Puzzle
+onBack={(completed: boolean) => {
+  setShowPuzzle(false);
+  if (completed && activeLocation) {
+    const locationId = activeLocation.infoId || activeLocation.id;
+
+    collectBadgeSilent(locationId, () => showBadgePopup(locationId));
+  }
+}}
+/>
+)}
 
           {/* INFO PLANES */}
-          {activeLocation?.infoId && (
-            <Billboard position={[3, 0.5, -1]}>
-              <InfoPlanes
-                locationId={activeLocation.infoId}
-                showInfo={showInfo}
-                setShowInfo={(v) => {
-                  if (!v) {
-                    showBadgePopup(activeLocation.infoId || activeLocation.id);
-                  }
-                  setShowInfo(v);
-                }}
-              />
-            </Billboard>
-          )}
+{activeLocation?.infoId && (
+  <Billboard position={[3, 0.5, -1]}>
+    <InfoPlanes
+      locationId={activeLocation.infoId}
+      showInfo={showInfo}
+      setShowInfo={setShowInfo} // Keine Badge hier!
+    />
+  </Billboard>
+)}
         </IfInSessionMode>
       </XR>
     </Canvas>

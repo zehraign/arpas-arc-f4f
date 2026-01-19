@@ -161,8 +161,8 @@ import Puzzle3D from "./Puzzle3D";
 import { formatTime } from "../utility";
 
 interface PuzzleWithBackProps extends GroupProps {
-  onBack: () => void;
-  imageUrl: string; // 👈 NEU
+  onBack: (completed: boolean) => void; // ✅ hier boolean
+  imageUrl: string;
 }
 
 const PUZZLE_CONTAINER_POSITION: [number, number, number] = [0, 0, -0.35];
@@ -213,7 +213,7 @@ export default function PuzzleWithBack({
             <RoundedBox
               args={[0.12, 0.12, 0.04]}
               radius={0.02}
-              onPointerDown={onBack}
+              onPointerDown={() => onBack(showCongrats)}
             >
               <meshStandardMaterial color="#c42424" />
             </RoundedBox>

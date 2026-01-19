@@ -11,7 +11,7 @@ interface Question {
 
 interface QuizPlaneProps extends GroupProps {
   questions: Question[];
-  onClose: () => void;
+  onClose: (completed: boolean) => void; // ✅ übergeben, ob Quiz bestanden
 }
 
 /* -------------------- Constants -------------------- */
@@ -87,7 +87,7 @@ export default function QuizPlane({
         args={[0.12, 0.12, 0.04]}
         position={[0.58, 0.42, 0.06]}
         radius={0.03}
-        onPointerDown={onClose}
+        onPointerDown={() => onClose(score === questions.length)}
       >
         <meshStandardMaterial color={RED} />
         <Text fontSize={0.08} color="#fff" position={[0, 0, 0.03]}>
@@ -235,15 +235,15 @@ export default function QuizPlane({
           </RoundedBox>
 
           <RoundedBox
-            args={[0.55, 0.12, 0.04]}
-            position={[0, -0.46, 0.04]}
-            onPointerDown={onClose}
-          >
-            <meshStandardMaterial color={RED} />
-            <Text position={[0, 0, 0.03]} fontSize={0.05} color="#fff">
-              Schließen
-            </Text>
-          </RoundedBox>
+  args={[0.55, 0.12, 0.04]}
+  position={[0, -0.46, 0.04]}
+  onPointerDown={() => onClose(score === questions.length)} // ✅ Badge nur wenn alle richtig
+>
+  <meshStandardMaterial color={RED} />
+  <Text position={[0, 0, 0.03]} fontSize={0.05} color="#fff">
+    Schließen
+  </Text>
+</RoundedBox>
         </>
       )}
     </group>

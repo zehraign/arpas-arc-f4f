@@ -1,15 +1,14 @@
 import { Text, RoundedBox } from "@react-three/drei";
+import { useState } from "react";
 import * as THREE from "three";
 
 interface ProgressBoardProps {
   collected: string[]; // z.B. ["algen", "quallen"]
 }
 
-/**
- * 3D Fortschrittsanzeige / Stempelkarte 
- * Zeigt pro Standort ein Badge
- */
 export default function ProgressBoard({ collected }: ProgressBoardProps) {
+  const [showInfoOverlay, setShowInfoOverlay] = useState(false);
+
   const locations = [
     { id: "algen", label: "🌱" },
     { id: "grillen", label: "🦗" },
@@ -37,6 +36,40 @@ export default function ProgressBoard({ collected }: ProgressBoardProps) {
       >
         Fortschritt
       </Text>
+
+      {/* Info-Button */}
+      <group position={[0.75, 0.22, 0.06]} onPointerDown={() => setShowInfoOverlay(!showInfoOverlay)}>
+        
+        <RoundedBox args={[0.24, 0.14, 0.051]} radius={0.035}>
+  <meshStandardMaterial color="#162e2c" />
+</RoundedBox>
+
+        <Text fontSize={0.09} color="#fff" anchorX="center" anchorY="middle"  position={[0, 0, 0.03]}>
+          i
+        </Text>
+      </group>
+
+      {/* Info-Overlay */}
+      {showInfoOverlay && (
+        <group position={[0, -0.3, 0.08]}>
+          <RoundedBox args={[1.7, 0.4, 0.05]} radius={0.05}>
+            <meshStandardMaterial color="#caedea" />
+          </RoundedBox>
+          <Text
+            fontSize={0.05}
+            color="#326661"
+            anchorX="center"
+            anchorY="middle"
+            maxWidth={1.6}
+            textAlign="center"
+            position={[0, 0, 0.03]} // etwas über die Plane
+          >
+            Hier sammelst du deine Badges! {"\n"}
+            An jedem der fünf Standorte kannst du ein Badge erhalten, indem du Quiz, Puzzle oder Memory richtig löst. {"\n"}
+            Wenn du alle gesammelt hast, erhälst du eine special Badge!
+          </Text>
+        </group>
+      )}
 
       {/* Badges */}
       {locations.map((loc, index) => {

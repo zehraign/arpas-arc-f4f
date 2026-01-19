@@ -117,42 +117,42 @@ const buttonTextures: Record<string, string> = {
 ========================= */
 const locationImages: Record<string, string[]> = {
   quallen: [
-    "/static/images/Qualle/Qualle1.jpg",
-    "/static/images/Qualle/Qualle2.jpg",
+    "/static/images/Qualle/Qualle1.png",
+    "/static/images/Qualle/Qualle2.png",
     "/static/images/Qualle/Qualle3.png",
-    "/static/images/Qualle/Qualle4.jpg",
-    "/static/images/Qualle/Qualle5.jpg",
-    "/static/images/Qualle/Qualle6.jpg",
+    "/static/images/Qualle/Qualle4.png",
+    "/static/images/Qualle/Qualle5.png",
+    "/static/images/Qualle/Qualle6.png",
   ],
   salzpflanzen: [
-    "/static/images/salzpflanzen/SP2.jpeg",
-    "/static/images/salzpflanzen/SP3.JPG",
-    "/static/images/salzpflanzen/SP4.JPG",
-    "/static/images/salzpflanzen/SP5.JPG",
-    "/static/images/salzpflanzen/SP6.JPG",
+    "/static/images/salzpflanzen/SP2.png",
+    "/static/images/salzpflanzen/SP3.png",
+    "/static/images/salzpflanzen/SP4.png",
+    "/static/images/salzpflanzen/SP5.png",
+    "/static/images/salzpflanzen/SP6.png",
   ],
   algen: [
-    "/static/images/algen/alge1.jpg",
-    "/static/images/algen/alge2.jpg",
-    "/static/images/algen/alge3.jpg",
-    "/static/images/algen/alge4.JPG",
-    "/static/images/algen/alge5.JPG",
-    "/static/images/algen/alge6.jpg",
+    "/static/images/algen/alge1.png",
+    "/static/images/algen/alge2.png",
+    "/static/images/algen/alge3.png",
+    "/static/images/algen/alge4.png",
+    "/static/images/algen/alge5.png",
+    "/static/images/algen/alge6.png",
   ],
   kitchen: [
-    "/static/images/kitchen/k1.jpg",
-    "/static/images/kitchen/k3.jpg",
-    "/static/images/kitchen/k4.jpg",
-    "/static/images/kitchen/k5.jpg",
-    "/static/images/kitchen/k7.jpg",
-    "/static/images/kitchen/k8.jpg",
+    "/static/images/kitchen/k1.png",
+    "/static/images/kitchen/k3.png",
+    "/static/images/kitchen/k4.png",
+    "/static/images/kitchen/k5.png",
+    "/static/images/kitchen/k7.png",
+    "/static/images/kitchen/k8.png",
   ],
   grillen: [
-    "/static/images/grillen/grille1.jpg",
-    "/static/images/grillen/grille2.jpg",
-    "/static/images/grillen/grille3.jpg",
-    "/static/images/grillen/grille4.jpg",
-    "/static/images/grillen/grille5.jpg",
+    "/static/images/grillen/grille1.png",
+    "/static/images/grillen/grille2.png",
+    "/static/images/grillen/grille3.png",
+    "/static/images/grillen/grille4.png",
+    "/static/images/grillen/grille5.png",
   ],
 };
 
@@ -252,7 +252,7 @@ export default function InfoPlanes({
       ref={(ref) => {
         if (ref) ref.lookAt(camera.position);
       }}
-      position={[0.3, 0.7, -0.5]} // nach links verschoben
+      position={[0.1, 0.7, -0.5]} // nach links verschoben
     >
       {/* Hintergrund-Plane */}
       <RoundedBox args={[2.5, 0.8, 0.06]} radius={0.05}>
@@ -266,7 +266,7 @@ export default function InfoPlanes({
       {/* Hinweis-Text */}
       <Text
         position={[0, 0, 0.04]} // leicht vor der Plane
-        fontSize={0.08} // größer
+        fontSize={0.09} // größer
         color="white"
         anchorX="center"
         anchorY="middle"
@@ -359,7 +359,7 @@ export default function InfoPlanes({
           </Text>
 
           {/* Info-Box: näher ans Bild gerückt */}
-          <group position={[0.65, 0, 0]}>
+          <group position={[0.48, 0, 0]}>
             <RoundedBox args={[1.3, 0.9, 0.06]} radius={0.04}>
               <meshStandardMaterial
                 color={infoPlaneColors[locationId] || "#2B4E4C"}

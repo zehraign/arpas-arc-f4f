@@ -156,6 +156,17 @@ const locationImages: Record<string, string[]> = {
   ],
 };
 
+
+/* =========================
+   Pulsierende Bilder pro Standort (Index)
+========================= */
+const pulsatingImages: Record<string, number[]> = {
+  quallen: [0, 2, 4],
+  algen: [1, 3, 5],
+  grillen: [0, 2, 4],
+  kitchen: [1, 3, 4],
+  salzpflanzen: [0, 2, 3],
+};
 /* =========================
    Bildunterschriften pro Standort (Platzhalter)
 ========================= */
@@ -211,6 +222,8 @@ export default function InfoPlanes({
   const groupRef = useRef<THREE.Group>(null);
   const itemRefs = useRef<THREE.Group[]>([]);
   const closeRef = useRef<THREE.Group>(null);
+  const imageRefs = useRef<THREE.Mesh[]>([]);
+  
 
   // Close-Button schaut zur Kamera
   useFrame(() => {
@@ -222,6 +235,22 @@ export default function InfoPlanes({
     if (groupRef.current) groupRef.current.position.set(camera.position.x, camera.position.y, camera.position.z);
     itemRefs.current.forEach((ref) => {
       if (ref) ref.lookAt(camera.position);
+    });
+  });
+  useFrame(({ clock }) => {
+    const time = clock.elapsedTime;
+    const active = pulsatingImages[locationId] || [];
+  
+    active.forEach((index) => {
+      const mesh = imageRefs.current[index];
+      if (!mesh) return;
+  
+      // 🔹 Pulsstärke erhöhen (von 6% auf 10%)
+      const pulse = 1 + Math.sin(time * 2.5) * 0.10; // schneller + größer
+      mesh.scale.set(pulse, pulse, 1);
+  
+      // 🔹 Vertikale Bewegung etwas stärker
+      mesh.position.y = Math.sin(time * 1.8) * 0.06;
     });
   });
 
@@ -339,10 +368,16 @@ export default function InfoPlanes({
           position={[x, y, z]}
         >
           {/* Bild */}
-          <mesh position={[-0.85, 0, 0]}>
-            <planeGeometry args={[1.3, 0.85]} />
-            <meshStandardMaterial map={tex} transparent />
-          </mesh>
+          <mesh
+  ref={(el) => {
+    if (!el) return;
+    if (!imageRefs.current[i]) imageRefs.current[i] = el;
+  }}
+  position={[-0.85, 0, 0]}
+>
+  <planeGeometry args={[1.3, 0.85]} />
+  <meshStandardMaterial map={tex} transparent />
+</mesh>
 
           {/* Bildunterschrift */}
           <Text

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { TextureLoader, RepeatWrapping } from "three";
-import { useLoader, useFrame, ThreeEvent } from "@react-three/fiber";
+import { useLoader, useFrame } from "@react-three/fiber";
 
 import {
   createInitialState,
@@ -17,45 +17,44 @@ const TILE_THICKNESS = 0.1;
 const TILE_GAP = 0.03;
 const STEP = TILE_SIZE + TILE_GAP;
 
-/* === POSITION === */
+/* === HILFSFUNKTIONEN === */
 const get3DPosition = (index: number): [number, number, number] => {
   const row = Math.floor(index / GRID_SIZE);
   const col = index % GRID_SIZE;
-
   const x = (col - (GRID_SIZE - 1) / 2) * STEP;
   const y = ((GRID_SIZE - 1) / 2 - row) * STEP;
-
   return [x, y, TILE_THICKNESS / 2];
 };
 
-/* === TILE === */
+/* === INTERFACES === */
 interface AnimatedTileProps {
   currentIndex: number;
   tileId: number;
   baseTexture: THREE.Texture;
-  onRelease: (fromIndex: number) => void;
+  onClick: () => void;
 }
 
+// ✅ Dieses Interface muss hier stehen, damit der Fehler unten verschwindet
+interface Puzzle3DProps {
+  imageUrl: string;
+  position?: [number, number, number];
+  onSolved?: () => void;
+  resetCount: number;
+}
+
+/* === TILE KOMPONENTE === */
 const AnimatedTile = ({
   currentIndex,
   tileId,
   baseTexture,
-  onRelease,
+  onClick,
 }: AnimatedTileProps) => {
   const meshRef = useRef<THREE.Mesh>(null!);
-  const isDragging = useRef(false);
-  const dragOffset = useRef(new THREE.Vector3());
+  const targetPosition = useMemo(() => get3DPosition(currentIndex), [currentIndex]);
 
-  const targetPosition = useMemo(
-    () => get3DPosition(currentIndex),
-    [currentIndex]
-  );
-
-  /* === TEXTURE === */
   const texture = useMemo(() => {
     const row = Math.floor((tileId - 1) / GRID_SIZE);
     const col = (tileId - 1) % GRID_SIZE;
-
     const t = baseTexture.clone();
     t.wrapS = t.wrapT = RepeatWrapping;
     t.repeat.set(1 / GRID_SIZE, 1 / GRID_SIZE);
@@ -65,77 +64,30 @@ const AnimatedTile = ({
     return t;
   }, [baseTexture, tileId]);
 
-  /* === MATERIALS === */
-  const materials = useMemo(
-    () => [
-      new THREE.MeshStandardMaterial({ color: "#0f3d2e" }),
-      new THREE.MeshStandardMaterial({ color: "#0f3d2e" }),
-      new THREE.MeshStandardMaterial({ color: "#145a43" }),
-      new THREE.MeshStandardMaterial({ color: "#0a2b21" }),
-      new THREE.MeshPhongMaterial({
-        map: texture,
-        shininess: 35,
-        specular: new THREE.Color("#ffffff"),
-      }),
-      new THREE.MeshStandardMaterial({ color: "#0b3326" }),
-    ],
-    [texture]
-  );
+  const materials = useMemo(() => [
+    new THREE.MeshStandardMaterial({ color: "#0f3d2e" }),
+    new THREE.MeshStandardMaterial({ color: "#0f3d2e" }),
+    new THREE.MeshStandardMaterial({ color: "#145a43" }),
+    new THREE.MeshStandardMaterial({ color: "#0a2b21" }),
+    new THREE.MeshPhongMaterial({ map: texture, shininess: 35, specular: new THREE.Color("#ffffff") }),
+    new THREE.MeshStandardMaterial({ color: "#0b3326" }),
+  ], [texture]);
 
-  /* === ANIMATION === */
   useFrame((_, delta) => {
-    if (isDragging.current) return;
-
     const [tx, ty, tz] = targetPosition;
-
-    meshRef.current.position.x = THREE.MathUtils.lerp(
-      meshRef.current.position.x,
-      tx,
-      delta * 10
-    );
-    meshRef.current.position.y = THREE.MathUtils.lerp(
-      meshRef.current.position.y,
-      ty,
-      delta * 10
-    );
-    meshRef.current.position.z = THREE.MathUtils.lerp(
-      meshRef.current.position.z,
-      tz,
-      delta * 10
-    );
+    // Glattes, lineares Gleiten ohne Federn
+    meshRef.current.position.x = THREE.MathUtils.lerp(meshRef.current.position.x, tx, delta * 15);
+    meshRef.current.position.y = THREE.MathUtils.lerp(meshRef.current.position.y, ty, delta * 15);
+    meshRef.current.position.z = THREE.MathUtils.lerp(meshRef.current.position.z, tz, delta * 15);
   });
 
-  /* === POINTER HANDLING === */
-  const onPointerDown = (e: ThreeEvent<PointerEvent>) => {
-    e.stopPropagation();
-    isDragging.current = true;
-    dragOffset.current.copy(e.point).sub(meshRef.current.position);
-  };
-
-  const onPointerMove = (e: ThreeEvent<PointerEvent>) => {
-    if (!isDragging.current) return;
-    e.stopPropagation();
-
-    meshRef.current.position.x = e.point.x - dragOffset.current.x;
-    meshRef.current.position.y = e.point.y - dragOffset.current.y;
-    meshRef.current.position.z = TILE_THICKNESS * 0.9;
-  };
-
-  const onPointerUp = (e: ThreeEvent<PointerEvent>) => {
-    e.stopPropagation();
-    isDragging.current = false;
-    onRelease(currentIndex);
-  };
-
   return (
-    <mesh
-      ref={meshRef}
-      castShadow
-      receiveShadow
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerLeave={onPointerUp}
+    <mesh 
+      ref={meshRef} 
+      onPointerDown={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
     >
       <boxGeometry args={[TILE_SIZE, TILE_SIZE, TILE_THICKNESS]} />
       {materials.map((m, i) => (
@@ -145,25 +97,15 @@ const AnimatedTile = ({
   );
 };
 
-/* === PUZZLE === */
-interface Puzzle3DProps {
-  imageUrl: string;
-  position?: [number, number, number];
-  onSolved?: () => void;
-  resetCount: number;
-}
-
+/* === HAUPT KOMPONENTE === */
 export default function Puzzle3D({
   imageUrl,
   position = [0, 0, -1.5],
   onSolved,
   resetCount,
-}: Puzzle3DProps) {
-  const baseTexture = useLoader(TextureLoader, imageUrl);
-
-  const [puzzleState, setPuzzleState] = useState<PuzzleState>(
-    createInitialState()
-  );
+}: Puzzle3DProps) { // ✅ Fehler behoben: Interface ist nun oben definiert
+  const baseTexture = useLoader(TextureLoader, imageUrl) as THREE.Texture;
+  const [puzzleState, setPuzzleState] = useState<PuzzleState>(createInitialState());
   const [solved, setSolved] = useState(false);
 
   useEffect(() => {
@@ -171,12 +113,10 @@ export default function Puzzle3D({
     setSolved(false);
   }, [resetCount]);
 
-  const releaseTile = (index: number) => {
+  const handleTileClick = (index: number) => {
     if (solved) return;
-
     const newState = moveTile(puzzleState, index);
     setPuzzleState(newState);
-
     if (isSolved(newState)) {
       setSolved(true);
       onSolved?.();
@@ -192,14 +132,13 @@ export default function Puzzle3D({
             tileId={tile.id}
             currentIndex={index}
             baseTexture={baseTexture}
-            onRelease={releaseTile}
+            onClick={() => handleTileClick(index)}
           />
         )
       )}
     </group>
   );
 }
-
 
 
 
@@ -358,3 +297,95 @@ export default function Puzzle3D({
     </group>
   );
 }*/
+
+/*  export default function Puzzle3D({
+  imageUrl,
+  position = [0, 1.4, -0.6], // 👈 AR-sichere Position
+  onSolved,
+}: Puzzle3DProps) {
+
+  // Textur laden
+  const texture = useLoader(TextureLoader, imageUrl);
+
+  // Textur korrekt für Tiles vorbereiten
+  useEffect(() => {
+    texture.wrapS = RepeatWrapping;
+    texture.wrapT = RepeatWrapping;
+    texture.repeat.set(1 / GRID_SIZE, 1 / GRID_SIZE);
+    texture.needsUpdate = true;
+  }, [texture]);
+
+  // Puzzle State
+  const [puzzleState, setPuzzleState] = useState<PuzzleState>(
+    createInitialState()
+  );
+
+  useEffect(() => {
+    setPuzzleState(shuffle(createInitialState()));
+  }, []);
+
+  const clickTile = (tileIndex: number) => {
+    const newState = moveTile(puzzleState, tileIndex);
+    setPuzzleState([...newState]);
+
+    if (isSolved(newState) && onSolved) {
+      onSolved();
+    }
+  };
+
+  return (
+    <group position={position}>
+      {puzzleState.map((tile, index) => {
+        if (tile.isEmpty) return null;
+
+        const row = Math.floor(index / GRID_SIZE);
+        const col = index % GRID_SIZE;
+
+        return (
+          <mesh
+            key={tile.id}
+            position={[
+              (col - 1) * 0.45,
+              (1 - row) * 0.45,
+              0,
+            ]}
+            onPointerDown={() => clickTile(index)} // 👈 wichtig für AR
+          >
+            <planeGeometry args={[0.4, 0.4]} />
+            <meshBasicMaterial
+              map={texture}
+              transparent
+              map-offset={[
+                (tile.id - 1) % GRID_SIZE / GRID_SIZE,
+                1 -
+                  Math.floor((tile.id - 1) / GRID_SIZE) / GRID_SIZE -
+                  1 / GRID_SIZE,
+              ]}
+            />
+          </mesh>
+        );
+      })}
+    </group>
+  );
+}*/
+
+/*Pinke boxen export default function Puzzle3D({ position = [0, 0, -1] }: any) {
+  return (
+    <group position={position}>
+      {Array.from({ length: 8 }).map((_, i) => (
+        <mesh
+          key={i}
+          position={[
+            ((i % 3) - 1) * 0.35,
+            (1 - Math.floor(i / 3)) * 0.35,
+            0,
+          ]}
+        >
+          <boxGeometry args={[0.3, 0.3, 0.05]} />
+          <meshBasicMaterial color="hotpink" />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+*/

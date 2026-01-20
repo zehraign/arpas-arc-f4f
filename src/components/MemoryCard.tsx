@@ -190,7 +190,7 @@ export default function MemoryCard({
       >
         {/* Kartenrücken */}
         <RoundedBox args={[0.28, 0.38, 0.04]} radius={0.03}>
-          <meshStandardMaterial color="#1c3d5a" />
+          <meshStandardMaterial color="#285883" />
         </RoundedBox>
 
         {/* Vorderseite (Bild) */}

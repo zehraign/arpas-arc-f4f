@@ -1,263 +1,297 @@
-
-import { XR, IfInSessionMode, createXRStore } from "@react-three/xr";
+import {
+  XR,
+  IfInSessionMode,
+  createXRStore,
+  useXR,
+} from "@react-three/xr";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Text, RoundedBox } from "@react-three/drei";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import * as THREE from "three";
 
+/* Components */
 import QuizPlane from "./components/QuizPlane";
 import PuzzleWithBack from "./components/PuzzleWithBack";
 import MemoryGame from "./components/MemoryGame";
 import IndexPage from "./pages/index";
 import InfoPlanes from "./components/InfoPlane";
+import ProgressBoard from "./components/ProgressBoard";
 
+/* Navigation */
+import NavigationOverlay from "./navigation/NavigationOverlay";
+import MiniMapPreview from "./navigation/MiniMapPreview";
+import { NavigationModelProvider } from "./navigation/NavigationModelContext";
+import { NavigationOverlayProvider, useNavigationOverlay } from "./navigation/NavigationOverlayContext";
+
+/* Data */
 import { quizLocations } from "./data/locations";
 import { distanceInMeters } from "./utility/geo";
 
+/* Types */
 import { SceneData } from "./types/objectData";
 import { TopicData } from "./types/topicData";
 import { ContentTypesData } from "./types/contentTypesData";
 
-/* XR STORE */
 const store = createXRStore({ controller: false });
 const quizzes = (import.meta as any).glob("./data/*.json");
 
 interface AppProps {
-  buttonClassName?: string;
-  buttonText?: string | JSX.Element;
-  view3dButtonText?: string | JSX.Element;
   content_types: ContentTypesData;
   scene: SceneData;
   topic: TopicData;
 }
 
-/* Billboard: dreht sich zur Kamera */
-function Billboard({
-  children,
-  position,
-}: {
-  children: React.ReactNode;
-  position: [number, number, number];
-}) {
+/* Billboard Helper */
+function Billboard({ children, position }: { children: React.ReactNode; position: [number, number, number]; }) {
   const ref = useRef<THREE.Group>(null);
   const { camera } = useThree();
-
   useFrame(() => {
     if (!ref.current) return;
-    ref.current.lookAt(
-      new THREE.Vector3(
-        camera.position.x,
-        ref.current.position.y,
-        camera.position.z
-      )
-    );
+    ref.current.lookAt(new THREE.Vector3(camera.position.x, ref.current.position.y, camera.position.z));
   });
-
-  return (
-    <group ref={ref} position={position}>
-      {children}
-    </group>
-  );
+  return <group ref={ref} position={position}>{children}</group>;
 }
 
-export default function App({
-  buttonClassName = "start-button",
-  buttonText = "Enter AR",
-  view3dButtonText = "View in 3D",
-  content_types,
-  scene,
-  topic,
-}: AppProps) {
+/* Sync Helpers */
+function NavigationOverlayStateSync({ isArActive }: { isArActive: boolean }) {
+  const { close } = useNavigationOverlay();
+  useEffect(() => { if (!isArActive) close(); }, [isArActive, close]);
+  return null;
+}
+function XrSessionSync({ onChange }: { onChange: (active: boolean) => void }) {
+  const session = useXR((s) => s.session);
+  useEffect(() => { onChange(Boolean(session)); }, [session, onChange]);
+  return null;
+}
+function DomOverlayRootSync({ onChange }: { onChange: (root: Element | null) => void }) {
+  const domOverlayRoot = useXR((state) => state.domOverlayRoot);
+  useEffect(() => { onChange(domOverlayRoot ?? null); }, [domOverlayRoot, onChange]);
+  return null;
+}
+
+export default function App({ content_types, scene, topic }: AppProps) {
+  /* UI States */
   const [inAR, setInAR] = useState(false);
+  const [xrSessionActive, setXrSessionActive] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
+  
+  /* Game States */
   const [activeLocation, setActiveLocation] = useState<any | null>(null);
-
   const [quizData, setQuizData] = useState<any[] | null>(null);
-  const [canStartQuiz, setCanStartQuiz] = useState(false);
-
   const [showQuiz, setShowQuiz] = useState(false);
   const [showPuzzle, setShowPuzzle] = useState(false);
   const [showMemory, setShowMemory] = useState(false);
+  const [canStartQuiz, setCanStartQuiz] = useState(false);
 
-  /* ENTER AR */
-  const handleEnterAR = async () => {
-    await store.enterAR();
-    setInAR(true);
+  /* XR Overlay Sync */
+  const [domOverlayRoot, setDomOverlayRoot] = useState<Element | null>(null);
+  const [domOverlayReady, setDomOverlayReady] = useState(false);
+  const navPortalRoot = xrSessionActive && domOverlayReady ? domOverlayRoot : null;
+
+  /* Badge System */
+  const [collectedBadges, setCollectedBadges] = useState<string[]>([]);
+  const [newBadgeText, setNewBadgeText] = useState<string | null>(null);
+  const [shownBadgePopups, setShownBadgePopups] = useState<string[]>([]);
+  const badgeTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const collectBadgeSilent = (id: string, callback?: () => void) => {
+    if (!id || collectedBadges.includes(id)) return;
+    setCollectedBadges((p) => [...p, id]);
+    if (callback) callback();
   };
 
-  /* LOCATION + QUIZ LOAD */
+  const showBadgePopup = (locationId: string) => {
+    if (!locationId || shownBadgePopups.includes(locationId)) return;
+    const count = collectedBadges.length + 1;
+    let message = count === 1 ? "Glückwunsch! Dein erstes Badge 🎉" : 
+                  count === 5 ? "WOW! Alle Badges gesammelt! ⭐ Master Explorer!" : 
+                  `Super! Dein ${count}. Badge!`;
+    setNewBadgeText(message);
+    setShownBadgePopups((prev) => [...prev, locationId]);
+    if (badgeTimeout.current) clearTimeout(badgeTimeout.current);
+    badgeTimeout.current = setTimeout(() => setNewBadgeText(null), 6000);
+  };
+
+  const handleEnterAR = async () => {
+    try { await store.enterAR(); setInAR(true); } 
+    catch (error) { console.warn("XR session konnte nicht gestartet werden:", error); }
+  };
+
+  /* Startscreen Animation */
+  const base = import.meta.env.BASE_URL;
+  const frames = useMemo(() => Array.from({ length: 10 }, (_, i) => `${base}start/character/frame_${String(i + 1).padStart(2, '0')}.PNG`), [base]);
+  const [frameIndex, setFrameIndex] = useState(0);
+
+  useEffect(() => {
+    if (inAR) return;
+    const id = setInterval(() => { setFrameIndex((p) => (p + 1) % 10); }, 160);
+    return () => clearInterval(id);
+  }, [inAR]);
+
+  /* Geo-Location Logik */
   useEffect(() => {
     if (!inAR) return;
-
-    navigator.geolocation.getCurrentPosition(async pos => {
+    navigator.geolocation.getCurrentPosition(async (pos) => {
       const { latitude, longitude } = pos.coords;
-
-      const found = quizLocations.find(loc =>
-        distanceInMeters(
-          latitude,
-          longitude,
-          loc.coords.lat,
-          loc.coords.lon
-        ) < loc.radius
-      );
-
+      const found = quizLocations.find((loc) => {
+        const dist = distanceInMeters(latitude, longitude, loc.coords.lat, loc.coords.lon);
+        return dist < loc.radius;
+      });
       if (!found) return;
       setActiveLocation(found);
-
       if (found.features?.quiz) {
-        const loader = quizzes[`./data/${found.features.quiz.file}`];
-        if (!loader) return;
-        const data = await loader();
-        setQuizData(data.default);
-        setCanStartQuiz(true);
-      } else {
-        setCanStartQuiz(false);
-      }
-
-      if (!found.features?.puzzle) {
-        setShowPuzzle(false);
-      }
+        const quizPath = `./data/${found.features.quiz.file}`;
+        const loader = quizzes[quizPath];
+        if (loader) {
+          const data = await loader();
+          setQuizData(data.default);
+          setCanStartQuiz(true);
+        }
+      } else { setCanStartQuiz(false); }
     });
   }, [inAR]);
 
+  useEffect(() => {
+    if (!xrSessionActive || !domOverlayRoot) { setDomOverlayReady(false); return; }
+    setDomOverlayReady(true);
+  }, [xrSessionActive, domOverlayRoot]);
+
   return (
-    <>
-      {/* START UI (NICHT AR) */}
+    <NavigationOverlayProvider>
       {!inAR && (
-        <div className="button-group">
-          <button className={buttonClassName} onClick={handleEnterAR}>
-            {buttonText}
-          </button>
-          <button className={buttonClassName}>
-            {view3dButtonText}
+        <div className="startscreen">
+          <img className="startscreen__bg" src={`${base}start/background.PNG`} alt="" />
+          <div className="startscreen__text">
+            <div className="startscreen__title">Willkommen beim AR Campus Guide</div>
+            <div className="startscreen__subtitle">Tippe auf START, um in den AR Modus zu wechseln.</div>
+          </div>
+          <img className="startscreen__character" src={frames[frameIndex]} alt="character" draggable={false} />
+          <button className="startscreen__startImgBtn" onClick={handleEnterAR}>
+            <img src={`${base}start/ui/start-button.PNG`} alt="START" draggable={false} />
           </button>
         </div>
       )}
 
-      {/* AR CANVAS */}
-      <Canvas style={{ width: "100%", height: "100%" }}>
+      <Canvas>
+        <ambientLight intensity={0.8} />
+        <directionalLight position={[5, 5, 5]} intensity={1} />
         <XR store={store}>
+          <XrSessionSync onChange={setXrSessionActive} />
+          <DomOverlayRootSync onChange={setDomOverlayRoot} />
           <IfInSessionMode allow="immersive-ar">
-            {/* BASIS SZENE */}
-            <IndexPage
-              contentTypes={content_types}
-              sceneData={scene}
-              topicData={topic}
-            />
+            
+            {/* UI: Progress Board (nur zeigen wenn kein Spiel aktiv) */}
+            {!showInfo && !showMemory && !showQuiz && !showPuzzle && (
+              <>
+                <IndexPage contentTypes={content_types} sceneData={scene} topicData={topic} />
+                <Billboard position={[0, 1.2, -1.2]}>
+                  <ProgressBoard collected={collectedBadges} />
+                </Billboard>
+              </>
+            )}
 
-            {/* BUTTONS */}
-            {activeLocation &&
-              !showQuiz &&
-              !showPuzzle &&
-              !showMemory && (
-                <group position={[0, 1, -1.4]}>
-                  {/* QUIZ */}
-                  {canStartQuiz && activeLocation.features?.quiz && (
-                    <group position={[-0.7, 0, -1]}>
-                      <RoundedBox
-                        args={[0.9, 0.32, 0.08]}
-                        radius={0.06}
-                        onPointerDown={() => setShowQuiz(true)}
-                      >
-                        <meshStandardMaterial
-                          color={activeLocation.button?.color ?? "#187852"}
-                        />
-                      </RoundedBox>
+            {/* UI: Badge Popup Animation */}
+            {newBadgeText && !showInfo && (
+              <Billboard position={[0, 1.5, -0.8]}>
+                <group scale={[0.8, 0.8, 0.8]}>
+                  <RoundedBox args={[1.8, 0.4, 0.05]} radius={0.05}><meshStandardMaterial color="#caedea" /></RoundedBox>
+                  <Text position={[0, 0, 0.03]} fontSize={0.07} color="#326661" maxWidth={1.6} textAlign="center">{newBadgeText}</Text>
+                </group>
+              </Billboard>
+            )}
 
-                      <Text
-                        position={[0, 0, 0.06]}
-                        fontSize={0.065}
-                        color="#ffffff"
-                        anchorX="center"
-                        anchorY="middle"
-                        maxWidth={0.8}
-                        textAlign="center"
-                      >
-                        {activeLocation.button?.label ?? "Quiz starten"}
-                      </Text>
-                    </group>
-                  )}
+            {/* Standort Interaktionen (Buttons) */}
+            {activeLocation && !showQuiz && !showPuzzle && !showMemory && !showInfo && (
+              <group position={[0, 1, -1.4]}>
+                {canStartQuiz && (
+                  <group position={[-0.6, 0.2, -1]}>
+                    <RoundedBox args={[0.9, 0.32, 0.08]} radius={0.06} onPointerDown={() => setShowQuiz(true)}>
+                      <meshStandardMaterial color={activeLocation.button?.color} />
+                    </RoundedBox>
+                    <Text position={[0, 0, 0.06]} fontSize={0.065} color="white">{activeLocation.button?.label}</Text>
+                  </group>
+                )}
 
-                  {/* PUZZLE */}
-                  {activeLocation.features?.puzzle && (
-                    <group position={[0.7, 0, -1]}>
-                      <RoundedBox
-                        args={[0.9, 0.32, 0.08]}
-                        radius={0.06}
-                        onPointerDown={() => setShowPuzzle(true)}
-                      >
-                        <meshStandardMaterial color="#3c8c40" />
-                      </RoundedBox>
+                {activeLocation.features?.puzzle && (
+                  <group position={[0.6, 0.2, -1]}>
+                    <RoundedBox args={[0.9, 0.32, 0.08]} radius={0.06} onPointerDown={() => setShowPuzzle(true)}>
+                      <meshStandardMaterial color="#3c8c40" />
+                    </RoundedBox>
+                    <Text position={[0, 0, 0.06]} fontSize={0.065} color="white">Puzzle 🌱</Text>
+                  </group>
+                )}
 
-                      <Text
-                        position={[0, 0, 0.06]}
-                        fontSize={0.065}
-                        color="#ffffff"
-                        anchorX="center"
-                        anchorY="middle"
-                      >
-                        Puzzle starten 🌱
-                      </Text>
-                    </group>
-                  )}
-
-                  {/* MEMORY */}
-                  <group position={[0, -0.5, -1]}>
-                    <RoundedBox
-                      args={[1.1, 0.32, 0.08]}
-                      radius={0.06}
-                      onPointerDown={() => setShowMemory(true)}
-                    >
+                {/* Memory Button (Aktiviert wenn Feature im Location-Objekt oder ID Kitchen) */}
+                {(activeLocation.features?.memory || activeLocation.id === "kitchen") && (
+                  <group position={[0, -0.2, -1]}>
+                    <RoundedBox args={[1.1, 0.32, 0.08]} radius={0.06} onPointerDown={() => setShowMemory(true)}>
                       <meshStandardMaterial color="#1f3f2e" />
                     </RoundedBox>
-
-                    <Text
-                      position={[0, 0, 0.06]}
-                      fontSize={0.065}
-                      color="#ffffff"
-                      anchorX="center"
-                      anchorY="middle"
-                    >
-                      Memory Spiel 🧠
-                    </Text>
+                    <Text position={[0, 0, 0.06]} fontSize={0.065} color="white">Memory Spiel 🧠</Text>
                   </group>
-                </group>
-              )}
+                )}
+              </group>
+            )}
+
+            {/* --- GAME OVERLAYS --- */}
 
             {/* QUIZ */}
             {showQuiz && quizData && (
-              <QuizPlane
-                questions={quizData}
-                position={[0, 1, -1.7]}
-                onClose={() => setShowQuiz(false)}
+              <QuizPlane 
+                questions={quizData} 
+                position={[0, 1, -1.7]} 
+                onClose={(comp) => { 
+                  setShowQuiz(false); 
+                  if (comp && activeLocation) {
+                    const id = activeLocation.infoId || activeLocation.id;
+                    collectBadgeSilent(id, () => showBadgePopup(id));
+                  }
+                }} 
               />
             )}
 
             {/* PUZZLE */}
             {showPuzzle && activeLocation?.features?.puzzle && (
-              <PuzzleWithBack
-                imageUrl={activeLocation.features.puzzle.image}
-                onBack={() => setShowPuzzle(false)}
+              <PuzzleWithBack 
+                imageUrl={activeLocation.features.puzzle.image} 
+                onBack={(comp) => { 
+                  setShowPuzzle(false); 
+                  if (comp && activeLocation) {
+                    const id = activeLocation.infoId || activeLocation.id;
+                    collectBadgeSilent(id, () => showBadgePopup(id));
+                  }
+                }} 
+              />
+            )}
+            
+            {/* MEMORY */}
+            {showMemory && (
+              <MemoryGame 
+                onClose={(completed) => { 
+                  setShowMemory(false); 
+                  if (completed && activeLocation) { 
+                    const badgeId = activeLocation.infoId || activeLocation.id;
+                    collectBadgeSilent(badgeId, () => showBadgePopup(badgeId)); 
+                  } 
+                }} 
               />
             )}
 
-            {/* MEMORY */}
-{showMemory && (
-  <group>
-    <MemoryGame onClose={() => setShowMemory(false)} />
-  </group>
-)}
-
-            
-            {/* INFO PLANES */}
+            {/* INFO PLANE */}
             {activeLocation?.infoId && (
               <Billboard position={[3, 0.5, -1]}>
-                <InfoPlanes locationId={activeLocation.infoId} />
+                <InfoPlanes locationId={activeLocation.infoId} showInfo={showInfo} setShowInfo={setShowInfo} />
               </Billboard>
             )}
           </IfInSessionMode>
         </XR>
       </Canvas>
-    </>
+
+      <NavigationOverlayStateSync isArActive={xrSessionActive} />
+      <NavigationModelProvider>
+        <MiniMapPreview isArActive={inAR} portalRoot={navPortalRoot} />
+        <NavigationOverlay portalRoot={navPortalRoot} showSessionWarning={inAR && !xrSessionActive} />
+      </NavigationModelProvider>
+    </NavigationOverlayProvider>
   );
 }
-

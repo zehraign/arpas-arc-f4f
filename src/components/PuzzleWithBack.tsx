@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { GroupProps } from "@react-three/fiber";
 import { Text, RoundedBox } from "@react-three/drei";
@@ -6,8 +5,8 @@ import Puzzle3D from "./Puzzle3D";
 import { formatTime } from "../utility";
 
 interface PuzzleWithBackProps extends GroupProps {
-  onBack: () => void;
-  imageUrl: string; // 👈 NEU
+  onBack: (completed: boolean) => void;
+  imageUrl: string;
 }
 
 const PUZZLE_CONTAINER_POSITION: [number, number, number] = [0, 0, -0.35];
@@ -20,6 +19,7 @@ export default function PuzzleWithBack({
   ...props
 }: PuzzleWithBackProps) {
   const [showCongrats, setShowCongrats] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false); // ✅ Bleibt true
   const [currentTime, setCurrentTime] = useState(0);
   const [isPuzzleRunning, setIsPuzzleRunning] = useState(true);
   const [resetCount, setResetCount] = useState(0);
@@ -34,6 +34,7 @@ export default function PuzzleWithBack({
   const handleSolved = () => {
     setIsPuzzleRunning(false);
     setShowCongrats(true);
+    setIsCompleted(true); // ✅ Erfolg speichern
     setTimeout(() => setShowCongrats(false), CONGRATS_DURATION_MS);
   };
 
@@ -42,6 +43,7 @@ export default function PuzzleWithBack({
     setCurrentTime(0);
     setIsPuzzleRunning(true);
     setShowCongrats(false);
+    // isCompleted lassen wir auf true, falls er schonmal gewonnen hat
   };
 
   return (
@@ -58,19 +60,17 @@ export default function PuzzleWithBack({
             <RoundedBox
               args={[0.12, 0.12, 0.04]}
               radius={0.02}
-              onPointerDown={onBack}
+              onPointerDown={(e) => {
+                e.stopPropagation();
+                onBack(isCompleted); // ✅ Nutzt den dauerhaften Status
+              }}
             >
               <meshStandardMaterial color="#c42424" />
             </RoundedBox>
-
-            <Text position={[0, 0, 0.045]} fontSize={0.08} color="#ffffff">
-              X
-            </Text>
+            <Text position={[0, 0, 0.045]} fontSize={0.08} color="#ffffff">X</Text>
           </group>
 
-          <Text position={[0, 0.12, 0.04]} fontSize={0.075} color="#1f3f2e">
-            Puzzle
-          </Text>
+          <Text position={[0, 0.12, 0.04]} fontSize={0.075} color="#1f3f2e">Puzzle</Text>
 
           <Text
             position={[0, 0, 0.04]}
@@ -79,14 +79,10 @@ export default function PuzzleWithBack({
             maxWidth={1.15}
             textAlign="center"
           >
-            Schiebe die Kacheln, um das Bild wiederherzustellen!
+            Tippe auf die Kacheln, um das Bild zu ordnen!
           </Text>
 
-          <Text
-            position={[0, -0.13, 0.04]}
-            fontSize={0.065}
-            color="#c42424"
-          >
+          <Text position={[0, -0.13, 0.04]} fontSize={0.065} color="#c42424">
             ⏱ {formatTime(currentTime)}
           </Text>
         </group>
@@ -99,20 +95,11 @@ export default function PuzzleWithBack({
         />
 
         {/* NEW GAME */}
-        <group position={[0, -0.9, 0.08]}>
-          <RoundedBox args={[0.8, 0.2, 0.05]} onPointerDown={handleNewGame}>
+        <group position={[0, -0.9, 0.08]} onPointerDown={handleNewGame}>
+          <RoundedBox args={[0.8, 0.2, 0.05]} radius={0.04}>
             <meshStandardMaterial color="#214730" />
           </RoundedBox>
-
-          <Text
-            position={[0, 0, 0.06]}
-            fontSize={0.07}
-            color="white"
-            anchorX="center"
-            anchorY="middle"
-          >
-            Neues Spiel
-          </Text>
+          <Text position={[0, 0, 0.06]} fontSize={0.07} color="white">Neues Spiel</Text>
         </group>
 
         {/* 🎉 GESCHAFFT OVERLAY */}
@@ -121,18 +108,9 @@ export default function PuzzleWithBack({
             <RoundedBox args={[1.3, 0.6, 0.04]} radius={0.05}>
               <meshStandardMaterial color="#ffffff" />
             </RoundedBox>
-
-            <Text position={[0, 0.18, 0.05]} fontSize={0.09} color="#1f3f2e">
-              🎉 Herzlichen Glückwunsch!
-            </Text>
-
-            <Text position={[0, 0.03, 0.05]} fontSize={0.055} color="#1f3f2e">
-              Puzzle gelöst in {formatTime(currentTime)}
-            </Text>
-
-            <Text position={[0, -0.15, 0.05]} fontSize={0.06} color="#162d21">
-              Großartige Leistung 🏆
-            </Text>
+            <Text position={[0, 0.18, 0.05]} fontSize={0.09} color="#1f3f2e">🎉 Herzlichen Glückwunsch!</Text>
+            <Text position={[0, 0.03, 0.05]} fontSize={0.055} color="#1f3f2e">Puzzle gelöst in {formatTime(currentTime)}</Text>
+            <Text position={[0, -0.15, 0.05]} fontSize={0.06} color="#162d21">Großartige Leistung 🏆</Text>
           </group>
         )}
       </group>

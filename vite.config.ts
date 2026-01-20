@@ -6,6 +6,10 @@ export default defineConfig({
     base: "/static/",
     plugins: [react()],
     server: {
+        host: "0.0.0.0",
+        port: 5173,
+        strictPort: true,
+        allowedHosts: true,
         cors: {
             origin: '*',
             methods: ['GET', 'POST'],
@@ -14,11 +18,7 @@ export default defineConfig({
         headers: {
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Headers': '*'
-        },
-        allowedHosts: [
-            'akita-awake-oarfish.ngrok-free.app',
-            'allowed-normal-flea.ngrok-free.app'
-        ]
+        }
     },
     build: {
         lib: {

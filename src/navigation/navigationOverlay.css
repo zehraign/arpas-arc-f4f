@@ -1,0 +1,90 @@
+.navigation-theme {
+  --accent: #10b981;
+  --accent-dark: #047857;
+  --panel-bg: #ecfdf5;
+  --surface: #ffffff;
+  --border: #bbf7d0;
+  --text: #0f172a;
+  --muted: #475569;
+}
+
+.navigation-overlay__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 9999;
+}
+
+.navigation-overlay__panel {
+  width: min(1100px, 90vw);
+  height: min(90vh, 900px);
+  max-height: 90vh;
+  background: var(--panel-bg, #f8fafc);
+  border-radius: 18px;
+  border: 2px solid var(--accent, #0f172a);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.25);
+  overflow: hidden;
+}
+
+.navigation-overlay__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.navigation-overlay__header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--text, #0f172a);
+}
+
+.navigation-overlay__header p {
+  margin: 4px 0 0;
+  color: var(--muted, #475569);
+  font-size: 0.9rem;
+}
+
+.navigation-overlay__warning {
+  margin: 6px 0 0;
+  color: #b45309;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.navigation-overlay__close {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--accent-dark, #047857);
+  background: var(--accent, #10b981);
+  color: #ffffff;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.navigation-overlay__close:hover {
+  background: var(--accent-dark, #047857);
+}
+
+.navigation-overlay__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+@media (max-width: 720px) {
+  .navigation-overlay__panel {
+    padding: 12px;
+  }
+}

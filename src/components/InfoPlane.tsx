@@ -5,6 +5,13 @@ import * as THREE from "three";
 import { TextureLoader } from "three";
 import { useTexture } from "@react-three/drei";
 
+const IMAGE_WIDTH = 1.4
+const IMAGE_HEIGHT = 0.95
+
+const GALLERY_RADIUS = 5.6
+const GALLERY_Y_BASE = 0.2
+const GALLERY_Y_OFFSET = 0.25
+
 /* =========================
    PRELOAD HOOK
 ========================= */
@@ -186,10 +193,15 @@ function ImageButton({ texturePath, onClick }: { texturePath: string; onClick: (
 
   useFrame(({ clock }) => {
     if (!ref.current) return;
+  
     const scale = 1 + Math.sin(clock.elapsedTime * 2) * 0.1;
     ref.current.scale.set(scale, scale, 1);
-    ref.current.position.y = Math.sin(clock.elapsedTime * 1.2) * 0.03;
-    ref.current.lookAt(camera.position);
+  
+    ref.current.lookAt(
+      camera.position.x,
+      ref.current.position.y,
+      camera.position.z
+    );
   });
 
   return (
@@ -218,25 +230,37 @@ export default function InfoPlanes({
   // ✅ Preload Textures asynchron
   const textures = usePreloadTextures(images);
 
-  const groupRef = useRef<THREE.Group>(null);
+ 
   const itemRefs = useRef<THREE.Group[]>([]);
   const closeRef = useRef<THREE.Group>(null);
   const imageRefs = useRef<THREE.Mesh[]>([]);
-  const [activeInfoIndex, setActiveInfoIndex] = useState<number | null>(null);
+  const [activeInfoIndices, setActiveInfoIndices] = useState<number[]>([]);
   
 
   // Close-Button schaut zur Kamera
   useFrame(() => {
-    if (closeRef.current) closeRef.current.lookAt(camera.position);
+    if (!closeRef.current) return;
+  
+    closeRef.current.lookAt(
+      camera.position.x,
+      closeRef.current.position.y,
+      camera.position.z
+    );
   });
 
   // Gruppe und Items schauen zur Kamera
   useFrame(() => {
-    if (groupRef.current) groupRef.current.position.set(camera.position.x, camera.position.y, camera.position.z);
-    itemRefs.current.forEach((ref) => {
-      if (ref) ref.lookAt(camera.position);
-    });
-  });
+    imageRefs.current.forEach((mesh) => {
+      if (!mesh) return
+  
+      mesh.lookAt(
+        camera.position.x,
+        mesh.position.y,
+        camera.position.z
+      )
+    })
+  })
+  
   useFrame(({ clock }) => {
     const time = clock.elapsedTime;
     const active = pulsatingImages[locationId] || [];
@@ -256,7 +280,7 @@ export default function InfoPlanes({
   // ⚠️ Ladeanzeige, falls Texturen noch nicht fertig
   if (showInfo && textures.length !== images.length) {
     return (
-      <group ref={groupRef} {...props}>
+      <group >
         <Text fontSize={0.1} color="white" anchorX="center" anchorY="middle">
           Bilder werden geladen...
         </Text>
@@ -265,7 +289,7 @@ export default function InfoPlanes({
   }
 
   return (
-    <group ref={groupRef} {...props}>
+    <group >
       {!showInfo && texturePath && (
         <ImageButton texturePath={texturePath} onClick={() => setShowInfo(true)} />
       )}
@@ -275,11 +299,11 @@ export default function InfoPlanes({
         INTRO-PLANE MIT HINWEIS
     ========================= */}
     <group
-      ref={(ref) => {
-        if (ref) ref.lookAt(camera.position);
-      }}
-      position={[0.1, 0.7, -0.5]} // nach links verschoben
-    >
+  ref={(ref) => {
+    if (ref) ref.lookAt(camera.position);
+  }}
+  position={[0, 1.4, -2.5]} // 🔥 fester Abstand im Raum
+>
       {/* Hintergrund-Plane */}
       <RoundedBox args={[2.5, 0.8, 0.06]} radius={0.05}>
         <meshStandardMaterial
@@ -336,19 +360,17 @@ export default function InfoPlanes({
       const step = arc / Math.max(total - 1, 1);
       const angle = startAngle + i * step;
 
-      // 🟢 GRÖSSERE, EINHEITLICHE SPHÄRE
-      const radius = 5.6;
-
+    
       // 👁️ Galerie-Höhe
       const eyeLevel = 0.2;
 
-      // 🔁 Zickzack rechts: unten → oben (etwas enger)
-      const verticalOffset = 0.2;
-      const y = i % 2 === 0 ? eyeLevel - verticalOffset : eyeLevel + verticalOffset;
-
-      // 📍 Position auf Kugel
-      const x = Math.sin(angle) * radius;
-      const z = Math.cos(angle) * radius;
+      const y =
+      i % 2 === 0
+        ? GALLERY_Y_BASE - GALLERY_Y_OFFSET
+        : GALLERY_Y_BASE + GALLERY_Y_OFFSET
+    
+    const x = Math.sin(angle) * GALLERY_RADIUS
+    const z = Math.cos(angle) * GALLERY_RADIUS
 
       const caption = locationCaptions[locationId]?.[i] || "AUTOR";
       const planeInfo = planes[i] || { title: "HINZUFÜGEN", content: [] };
@@ -367,15 +389,19 @@ export default function InfoPlanes({
           {/* Bild */}
           <mesh
   ref={(el) => {
-    if (!el) return;
-    imageRefs.current[i] = el;
+    if (!el) return
+    imageRefs.current[i] = el
   }}
   position={[-0.85, 0, 0]}
   onPointerDown={() => {
-    setActiveInfoIndex((prev) => (prev === i ? null : i));
+    setActiveInfoIndices((prev) =>
+      prev.includes(i)
+        ? prev.filter((index) => index !== i)
+        : [...prev, i]
+    )
   }}
 >
-  <planeGeometry args={[1.3, 0.85]} />
+  <planeGeometry args={[IMAGE_WIDTH, IMAGE_HEIGHT]} />
   <meshStandardMaterial map={tex} transparent />
 </mesh>
 
@@ -394,8 +420,18 @@ export default function InfoPlanes({
           </Text>
 
           {/* Info-Box: näher ans Bild gerückt */}
-          {activeInfoIndex === i && (
-  <group position={[0.48, 0, 0]}>
+          {activeInfoIndices.includes(i) && (
+  <group
+    position={[0.48, 0, 0]}
+    ref={(ref) => {
+      if (!ref) return
+      ref.lookAt(
+        camera.position.x,
+        ref.position.y,
+        camera.position.z
+      )
+    }}
+  >
             <RoundedBox args={[1.3, 0.9, 0.06]} radius={0.04}>
               <meshStandardMaterial
                 color={infoPlaneColors[locationId] || "#2B4E4C"}

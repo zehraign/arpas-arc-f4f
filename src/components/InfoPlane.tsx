@@ -8,7 +8,7 @@ import { useTexture } from "@react-three/drei";
 const IMAGE_WIDTH = 1.4
 const IMAGE_HEIGHT = 0.95
 
-const GALLERY_RADIUS = 5.6
+const GALLERY_RADIUS = 5.6 
 const GALLERY_Y_BASE = 0.2
 const GALLERY_Y_OFFSET = 0.25
 
@@ -233,8 +233,9 @@ export default function InfoPlanes({
  
   const itemRefs = useRef<THREE.Group[]>([]);
   const closeRef = useRef<THREE.Group>(null);
-  const imageRefs = useRef<THREE.Mesh[]>([]);
+
   const [activeInfoIndices, setActiveInfoIndices] = useState<number[]>([]);
+  const imagePlaneRefs = useRef<THREE.Group[]>([]);
   
 
   // Close-Button schaut zur Kamera
@@ -248,32 +249,20 @@ export default function InfoPlanes({
     );
   });
 
-  // Gruppe und Items schauen zur Kamera
-  useFrame(() => {
-    imageRefs.current.forEach((mesh) => {
-      if (!mesh) return
-  
-      mesh.lookAt(
-        camera.position.x,
-        mesh.position.y,
-        camera.position.z
-      )
-    })
-  })
   
   useFrame(({ clock }) => {
     const time = clock.elapsedTime;
     const active = pulsatingImages[locationId] || [];
   
     active.forEach((index) => {
-      const mesh = imageRefs.current[index];
-      if (!mesh) return;
+      const card = imagePlaneRefs.current[index];
+      if (!card) return;
   
-      const pulse = 1 + Math.sin(time * 2) * 0.08;
-      mesh.scale.set(pulse, pulse, 1);
-      mesh.position.y = Math.sin(time * 1.5) * 0.04;
+      const pulse = 1 + Math.sin(time * 2) * 0.06;
+      card.scale.set(pulse, pulse, 1);
     });
   });
+    
 
   const radius = 3;
 
@@ -386,13 +375,19 @@ export default function InfoPlanes({
           }}
           position={[x, y, z]}
         >
-          {/* Bild */}
-          <mesh
-  ref={(el) => {
-    if (!el) return
-    imageRefs.current[i] = el
-  }}
+
+
+
+{/* =========================
+    BILD-KARTE 
+========================= */}
+<group
   position={[-0.85, 0, 0]}
+  ref={(outer) => {
+    if (!outer) return
+    imagePlaneRefs.current[i] = outer
+  }}
+
   onPointerDown={() => {
     setActiveInfoIndices((prev) =>
       prev.includes(i)
@@ -401,28 +396,58 @@ export default function InfoPlanes({
     )
   }}
 >
-  <planeGeometry args={[IMAGE_WIDTH, IMAGE_HEIGHT]} />
-  <meshStandardMaterial map={tex} transparent />
-</mesh>
+  {/* FARBE-PLANE HINTER DEM BILD */}
+  <RoundedBox
+    args={[IMAGE_WIDTH + 0.08, IMAGE_HEIGHT + 0.08, 0.04]}
+    radius={0.04}
+  >
+    <meshStandardMaterial
+      color={infoPlaneColors[locationId] || "#2B4E4C"}
+      roughness={0.6}
+      metalness={0.1}
+    />
+  </RoundedBox>
+
+  {/* BILD SELBST */}
+  <mesh
+  
+    position={[0, 0, 0.03]} // leicht vor dem Plane
+  >
+    <planeGeometry args={[IMAGE_WIDTH, IMAGE_HEIGHT]} />
+    <meshStandardMaterial
+      map={tex}
+      transparent
+      toneMapped={false}
+    />
+  </mesh>
+
 
           {/* Bildunterschrift */}
           <Text
-            position={[-0.85, -0.55, 0.03]}
-            fontSize={0.055}
-            color="white"
-            anchorX="center"
-            anchorY="top"
-            material-toneMapped={false}
-            maxWidth={1.3}
-            textAlign="center"
-          >
-            {caption}
-          </Text>
+  position={[0, -(IMAGE_HEIGHT / 2 + 0.08), 0.04]}
+  fontSize={0.055}
+  color="white"
+  anchorX="center"
+  anchorY="top"
+  material-toneMapped={false}
+  maxWidth={IMAGE_WIDTH}
+  textAlign="center"
+>
+  {caption}
+</Text>
+</group>
+
+
+
+
+
+
+
 
           {/* Info-Box: näher ans Bild gerückt */}
           {activeInfoIndices.includes(i) && (
   <group
-    position={[0.48, 0, 0]}
+  position={[IMAGE_WIDTH / 2 + 0.15, 0, 0]}
     ref={(ref) => {
       if (!ref) return
       ref.lookAt(
@@ -432,7 +457,10 @@ export default function InfoPlanes({
       )
     }}
   >
-            <RoundedBox args={[1.3, 0.9, 0.06]} radius={0.04}>
+         <RoundedBox
+  args={[IMAGE_WIDTH + 0.08, IMAGE_HEIGHT + 0.08, 0.06]}
+  radius={0.04}
+>
               <meshStandardMaterial
                 color={infoPlaneColors[locationId] || "#2B4E4C"}
                 roughness={0.6}

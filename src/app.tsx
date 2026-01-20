@@ -192,7 +192,7 @@ export default function App({ content_types, scene, topic }: AppProps) {
 
             {/* UI: Badge Popup Animation */}
             {newBadgeText && !showInfo && (
-              <Billboard position={[0, 1.5, -0.8]}>
+              <Billboard position={[0, 1.5, -1.5]}>
                 <group scale={[0.8, 0.8, 0.8]}>
                   <RoundedBox args={[1.8, 0.4, 0.05]} radius={0.05}><meshStandardMaterial color="#caedea" /></RoundedBox>
                   <Text position={[0, 0, 0.03]} fontSize={0.07} color="#326661" maxWidth={1.6} textAlign="center">{newBadgeText}</Text>
@@ -223,11 +223,11 @@ export default function App({ content_types, scene, topic }: AppProps) {
 
                 {/* Memory Button (Aktiviert wenn Feature im Location-Objekt oder ID Kitchen) */}
                 {(activeLocation.features?.memory || activeLocation.id === "kitchen") && (
-                  <group position={[0, -0.2, -1]}>
+                  <group position={[0.6, 0.2, -1]}>
                     <RoundedBox args={[1.1, 0.32, 0.08]} radius={0.06} onPointerDown={() => setShowMemory(true)}>
-                      <meshStandardMaterial color="#1f3f2e" />
+                      <meshStandardMaterial color="#149085" />
                     </RoundedBox>
-                    <Text position={[0, 0, 0.06]} fontSize={0.065} color="white">Memory Spiel 🧠</Text>
+                    <Text position={[0, 0, 0.06]} fontSize={0.065} color="white">Memory Spiel 🃏</Text>
                   </group>
                 )}
               </group>

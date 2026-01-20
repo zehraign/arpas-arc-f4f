@@ -46,7 +46,7 @@ interface MemoryGameProps {
   onClose?: (completed: boolean) => void; // ✅ Geändert zu boolean
 }
 
-const CONGRATS_DURATION_MS = 9000;
+const CONGRATS_DURATION_MS = 7000;
 
 export default function MemoryGame({ onClose }: MemoryGameProps) {
   const [cards, setCards] = useState<CardState[]>([]);
@@ -152,12 +152,14 @@ export default function MemoryGame({ onClose }: MemoryGameProps) {
         </RoundedBox>
 
         <Text position={[-1.25, 0.2, 0.08]} fontSize={0.085} anchorX="left">
-          <meshBasicMaterial color="#285883" depthTest={false} />
-          Memory 🃏 Finde die Paare!
+          <meshBasicMaterial color="#285883" //depthTest={false} 
+          />
+          Memory 🃏 Finde die passenden Paare!
         </Text>
 
         <Text position={[0.6, 0.2, 0.08]} fontSize={0.07}>
-          <meshBasicMaterial color="#285883" depthTest={false} />
+          <meshBasicMaterial color="#285883" //depthTest={false} 
+          />
           ⏱ {formatTime(time)}
         </Text>
 
@@ -168,15 +170,17 @@ export default function MemoryGame({ onClose }: MemoryGameProps) {
             fontSize={0.055}
             anchorX="left"
           >
-            <meshBasicMaterial color="#244f73" depthTest={false} />
+            <meshBasicMaterial color="#244f73" //depthTest={false} 
+            />
             {cat}: {val}
           </Text>
         ))}
 
         <RoundedBox args={[0.9, 0.18, 0.05]} radius={0.04} position={[0, -0.24, 0.08]} onPointerDown={newGame}>
           <meshStandardMaterial color="#285883" />
-          <Text fontSize={0.065} anchorX="center" anchorY="middle">
-            <meshBasicMaterial color="#ffffff" depthTest={false} />
+          <Text fontSize={0.065} anchorX="center" anchorY="middle" position={[0, 0, 0.03]}>
+            <meshBasicMaterial color="#ffffff" //depthTest={false} 
+            />
             Neues Spiel
           </Text>
         </RoundedBox>
@@ -191,7 +195,8 @@ export default function MemoryGame({ onClose }: MemoryGameProps) {
           >
             <meshStandardMaterial color="#d9534f" />
             <Text fontSize={0.085} anchorX="center" anchorY="middle">
-              <meshBasicMaterial color="#ffffff" depthTest={false} />
+              <meshBasicMaterial color="#ffffff" depthTest={false} 
+              />
               ✕
             </Text>
           </RoundedBox>
@@ -202,11 +207,11 @@ export default function MemoryGame({ onClose }: MemoryGameProps) {
       {showCongrats && (
         <group position={[0, 1.2, -2]}>
           <RoundedBox args={[1.8, 0.8, 0.05]} radius={0.06}>
-            <meshStandardMaterial color="#bbd4f4" />
+            <meshStandardMaterial color="#ffffff" />
           </RoundedBox>
           <Text position={[0, 0.15, 0.06]} fontSize={0.08} color="#285883" maxWidth={1.6} textAlign="center">
             🎉 Herzlichen Glückwunsch! 🎉{"\n"}
-            Du hast das Memory erfolgreich abgeschlossen!
+            Memory erfolgreich abgeschlossen!
           </Text>
           <Text position={[0, -0.18, 0.06]} fontSize={0.07} color="#244f73">
             Zeit: {formatTime(time)}

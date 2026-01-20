@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { GroupProps } from "@react-three/fiber";
 import { Text, RoundedBox } from "@react-three/drei";
+import { formatTime } from "../utility";
 
 /* -------------------- Types -------------------- */
 interface Question {
@@ -15,7 +16,7 @@ interface QuizPlaneProps extends GroupProps {
 }
 
 /* -------------------- Constants -------------------- */
-const QUESTION_TIME = 15;
+
 const TEXT = "#111";
 const RED = "#d9534f";
 
@@ -30,24 +31,21 @@ export default function QuizPlane({
   const [answered, setAnswered] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [score, setScore] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(QUESTION_TIME);
+  const [quizTime, setQuizTime] = useState(0);
+const [isQuizRunning, setIsQuizRunning] = useState(true);
+  
 
   const q = questions[current];
   const progress = (current + 1) / questions.length;
 
-  /* -------------------- Timer -------------------- */
   useEffect(() => {
-    if (answered || showResult) return;
-    const i = setInterval(() => setTimeLeft((t) => (t > 0 ? t - 1 : 0)), 1000);
-    return () => clearInterval(i);
-  }, [answered, showResult]);
-
-  useEffect(() => {
-    if (timeLeft === 0 && !answered) {
-      setAnswered(true);
-      setSelected(null);
-    }
-  }, [timeLeft, answered]);
+    if (!isQuizRunning) return;
+    const id = setInterval(() => {
+      setQuizTime((t) => t + 1);
+    }, 1000);
+    return () => clearInterval(id);
+  }, [isQuizRunning]);
+ 
 
   /* -------------------- Handlers -------------------- */
   const handleSelect = (idx: number) => {
@@ -60,9 +58,13 @@ export default function QuizPlane({
   const handleNext = () => {
     setSelected(null);
     setAnswered(false);
-    setTimeLeft(QUESTION_TIME);
-    if (current + 1 < questions.length) setCurrent((c) => c + 1);
-    else setShowResult(true);
+  
+    if (current + 1 < questions.length) {
+      setCurrent((c) => c + 1);
+    } else {
+      setShowResult(true);
+      setIsQuizRunning(false); // ⏸️ STOPPUHR STOPPEN
+    }
   };
 
   const handleRestart = () => {
@@ -71,7 +73,9 @@ export default function QuizPlane({
     setAnswered(false);
     setShowResult(false);
     setScore(0);
-    setTimeLeft(QUESTION_TIME);
+    setQuizTime(0);
+setIsQuizRunning(true);
+   
   };
 
   /* -------------------- Render -------------------- */
@@ -87,7 +91,10 @@ export default function QuizPlane({
         args={[0.12, 0.12, 0.04]}
         position={[0.58, 0.42, 0.06]}
         radius={0.03}
-        onPointerDown={() => onClose(score === questions.length)}
+        onPointerDown={() => {
+          setIsQuizRunning(false);
+          onClose(score === questions.length);
+        }}
       >
         <meshStandardMaterial color={RED} />
         <Text fontSize={0.08} color="#fff" position={[0, 0, 0.03]}>
@@ -108,10 +115,12 @@ export default function QuizPlane({
             Frage {current + 1} von {questions.length}
           </Text>
 
-          {/* TIMER */}
+ {/* stop Uhr */}
           <Text position={[0.45, 0.34, 0.06]} fontSize={0.05} color={RED}>
-            ⏱ {timeLeft}s
-          </Text>
+  ⏱ {formatTime(quizTime)}
+</Text>
+
+       
 
          {/* PROGRESS BAR BACKGROUND */}
 <RoundedBox
@@ -188,6 +197,7 @@ export default function QuizPlane({
               position={[0, -0.52, 0.04]}
               radius={0.03}
               onPointerDown={handleNext}
+              
             >
               <meshStandardMaterial color="#1abc9c" />
               <Text
@@ -221,7 +231,12 @@ export default function QuizPlane({
             <Text position={[0, -0.05, 0.06]} fontSize={0.055} color="#f39c12">
               Fast geschafft! Versuch es nochmal!
             </Text>
+            
           )}
+
+<Text position={[0, -0.18, 0.06]} fontSize={0.055} color={TEXT}>
+  ⏱ Zeit: {formatTime(quizTime)}
+</Text>
 
           <RoundedBox
             args={[0.55, 0.12, 0.04]}

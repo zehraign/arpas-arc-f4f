@@ -5,6 +5,13 @@ import * as THREE from "three";
 import { TextureLoader } from "three";
 import { useTexture } from "@react-three/drei";
 
+const IMAGE_WIDTH = 1.4
+const IMAGE_HEIGHT = 0.95
+
+const GALLERY_RADIUS = 5.6 
+const GALLERY_Y_BASE = 0.2
+const GALLERY_Y_OFFSET = 0.25
+
 /* =========================
    PRELOAD HOOK
 ========================= */
@@ -50,7 +57,6 @@ const infoPlaneColors: Record<string, string> = {
   quallen: "#369e9e",
   salzpflanzen: "#75a839",
 };
-
 interface InfoPlanesProps extends GroupProps {
   locationId: string;
   showInfo: boolean;
@@ -161,11 +167,11 @@ const locationImages: Record<string, string[]> = {
    Pulsierende Bilder pro Standort (Index)
 ========================= */
 const pulsatingImages: Record<string, number[]> = {
-  quallen: [0, 2, 4],
-  algen: [1, 3, 5],
-  grillen: [0, 2, 4],
-  kitchen: [1, 3, 4],
-  salzpflanzen: [0, 2, 3],
+  quallen: [0,1, 2, 3, 4,5  ],
+  algen: [0,1,2, 3,4, 5, ],
+  grillen: [0, 1, 2,3, 4],
+  kitchen: [0,1,2, 3, 4,5],
+  salzpflanzen: [0, 1,2, 3,4 ],
 };
 /* =========================
    Bildunterschriften pro Standort (Platzhalter)
@@ -187,10 +193,15 @@ function ImageButton({ texturePath, onClick }: { texturePath: string; onClick: (
 
   useFrame(({ clock }) => {
     if (!ref.current) return;
+  
     const scale = 1 + Math.sin(clock.elapsedTime * 2) * 0.1;
     ref.current.scale.set(scale, scale, 1);
-    ref.current.position.y = Math.sin(clock.elapsedTime * 1.2) * 0.03;
-    ref.current.lookAt(camera.position);
+  
+    ref.current.lookAt(
+      camera.position.x,
+      ref.current.position.y,
+      camera.position.z
+    );
   });
 
   return (
@@ -219,47 +230,46 @@ export default function InfoPlanes({
   // ✅ Preload Textures asynchron
   const textures = usePreloadTextures(images);
 
-  const groupRef = useRef<THREE.Group>(null);
+ 
   const itemRefs = useRef<THREE.Group[]>([]);
   const closeRef = useRef<THREE.Group>(null);
-  const imageRefs = useRef<THREE.Mesh[]>([]);
+
+  const [activeInfoIndices, setActiveInfoIndices] = useState<number[]>([]);
+  const imagePlaneRefs = useRef<THREE.Group[]>([]);
   
 
   // Close-Button schaut zur Kamera
   useFrame(() => {
-    if (closeRef.current) closeRef.current.lookAt(camera.position);
+    if (!closeRef.current) return;
+  
+    closeRef.current.lookAt(
+      camera.position.x,
+      closeRef.current.position.y,
+      camera.position.z
+    );
   });
 
-  // Gruppe und Items schauen zur Kamera
-  useFrame(() => {
-    if (groupRef.current) groupRef.current.position.set(camera.position.x, camera.position.y, camera.position.z);
-    itemRefs.current.forEach((ref) => {
-      if (ref) ref.lookAt(camera.position);
-    });
-  });
+  
   useFrame(({ clock }) => {
     const time = clock.elapsedTime;
     const active = pulsatingImages[locationId] || [];
   
     active.forEach((index) => {
-      const mesh = imageRefs.current[index];
-      if (!mesh) return;
+      const card = imagePlaneRefs.current[index];
+      if (!card) return;
   
-      // 🔹 Pulsstärke erhöhen (von 6% auf 10%)
-      const pulse = 1 + Math.sin(time * 2.5) * 0.10; // schneller + größer
-      mesh.scale.set(pulse, pulse, 1);
-  
-      // 🔹 Vertikale Bewegung etwas stärker
-      mesh.position.y = Math.sin(time * 1.8) * 0.06;
+      const pulse = 1 + Math.sin(time * 2) * 0.06;
+      card.scale.set(pulse, pulse, 1);
     });
   });
+    
 
   const radius = 3;
 
   // ⚠️ Ladeanzeige, falls Texturen noch nicht fertig
   if (showInfo && textures.length !== images.length) {
     return (
-      <group ref={groupRef} {...props}>
+      <group >
         <Text fontSize={0.1} color="white" anchorX="center" anchorY="middle">
           Bilder werden geladen...
         </Text>
@@ -268,7 +278,7 @@ export default function InfoPlanes({
   }
 
   return (
-    <group ref={groupRef} {...props}>
+    <group >
       {!showInfo && texturePath && (
         <ImageButton texturePath={texturePath} onClick={() => setShowInfo(true)} />
       )}
@@ -278,11 +288,11 @@ export default function InfoPlanes({
         INTRO-PLANE MIT HINWEIS
     ========================= */}
     <group
-      ref={(ref) => {
-        if (ref) ref.lookAt(camera.position);
-      }}
-      position={[0.1, 0.7, -0.5]} // nach links verschoben
-    >
+  ref={(ref) => {
+    if (ref) ref.lookAt(camera.position);
+  }}
+  position={[0, 1.4, -2.5]} // 🔥 fester Abstand im Raum
+>
       {/* Hintergrund-Plane */}
       <RoundedBox args={[2.5, 0.8, 0.06]} radius={0.05}>
         <meshStandardMaterial
@@ -339,19 +349,17 @@ export default function InfoPlanes({
       const step = arc / Math.max(total - 1, 1);
       const angle = startAngle + i * step;
 
-      // 🟢 GRÖSSERE, EINHEITLICHE SPHÄRE
-      const radius = 4.6;
-
+    
       // 👁️ Galerie-Höhe
-      const eyeLevel = 0.95;
+      const eyeLevel = 0.2;
 
-      // 🔁 Zickzack rechts: unten → oben (etwas enger)
-      const verticalOffset = 0.2;
-      const y = i % 2 === 0 ? eyeLevel - verticalOffset : eyeLevel + verticalOffset;
-
-      // 📍 Position auf Kugel
-      const x = Math.sin(angle) * radius;
-      const z = Math.cos(angle) * radius;
+      const y =
+      i % 2 === 0
+        ? GALLERY_Y_BASE - GALLERY_Y_OFFSET
+        : GALLERY_Y_BASE + GALLERY_Y_OFFSET
+    
+    const x = Math.sin(angle) * GALLERY_RADIUS
+    const z = Math.cos(angle) * GALLERY_RADIUS
 
       const caption = locationCaptions[locationId]?.[i] || "AUTOR";
       const planeInfo = planes[i] || { title: "HINZUFÜGEN", content: [] };
@@ -367,41 +375,99 @@ export default function InfoPlanes({
           }}
           position={[x, y, z]}
         >
-          {/* Bild */}
-          <mesh
-  ref={(el) => {
-    if (!el) return;
-    if (!imageRefs.current[i]) imageRefs.current[i] = el;
-  }}
+
+
+
+{/* =========================
+    BILD-KARTE 
+========================= */}
+<group
   position={[-0.85, 0, 0]}
+  ref={(outer) => {
+    if (!outer) return
+    imagePlaneRefs.current[i] = outer
+  }}
+
+  onPointerDown={() => {
+    setActiveInfoIndices((prev) =>
+      prev.includes(i)
+        ? prev.filter((index) => index !== i)
+        : [...prev, i]
+    )
+  }}
 >
-  <planeGeometry args={[1.3, 0.85]} />
-  <meshStandardMaterial map={tex} transparent />
-</mesh>
+  {/* FARBE-PLANE HINTER DEM BILD */}
+  <RoundedBox
+    args={[IMAGE_WIDTH + 0.08, IMAGE_HEIGHT + 0.08, 0.04]}
+    radius={0.04}
+  >
+    <meshStandardMaterial
+      color={infoPlaneColors[locationId] || "#2B4E4C"}
+      roughness={0.6}
+      metalness={0.1}
+    />
+  </RoundedBox>
+
+  {/* BILD SELBST */}
+  <mesh
+  
+    position={[0, 0, 0.03]} // leicht vor dem Plane
+  >
+    <planeGeometry args={[IMAGE_WIDTH, IMAGE_HEIGHT]} />
+    <meshStandardMaterial
+      map={tex}
+      transparent
+      toneMapped={false}
+    />
+  </mesh>
+
 
           {/* Bildunterschrift */}
           <Text
-            position={[-0.85, -0.55, 0.03]}
-            fontSize={0.055}
-            color="white"
-            anchorX="center"
-            anchorY="top"
-            material-toneMapped={false}
-            maxWidth={1.3}
-            textAlign="center"
-          >
-            {caption}
-          </Text>
+  position={[0, -(IMAGE_HEIGHT / 2 + 0.08), 0.04]}
+  fontSize={0.055}
+  color="white"
+  anchorX="center"
+  anchorY="top"
+  material-toneMapped={false}
+  maxWidth={IMAGE_WIDTH}
+  textAlign="center"
+>
+  {caption}
+</Text>
+</group>
+
+
+
+
+
+
+
 
           {/* Info-Box: näher ans Bild gerückt */}
-          <group position={[0.48, 0, 0]}>
-            <RoundedBox args={[1.3, 0.9, 0.06]} radius={0.04}>
+          {activeInfoIndices.includes(i) && (
+  <group
+  position={[IMAGE_WIDTH / 2 + 0.15, 0, 0]}
+    ref={(ref) => {
+      if (!ref) return
+      ref.lookAt(
+        camera.position.x,
+        ref.position.y,
+        camera.position.z
+      )
+    }}
+  >
+         <RoundedBox
+  args={[IMAGE_WIDTH + 0.08, IMAGE_HEIGHT + 0.08, 0.06]}
+  radius={0.04}
+>
               <meshStandardMaterial
                 color={infoPlaneColors[locationId] || "#2B4E4C"}
                 roughness={0.6}
                 metalness={0.1}
               />
             </RoundedBox>
+
 
             <Text
               position={[0, 0.32, 0.04]}
@@ -430,14 +496,14 @@ export default function InfoPlanes({
               {planeInfo.content.length > 0
                 ? planeInfo.content.map((line) => `• ${line}`).join("\n")
                 : "HINZUFÜGEN"}
-            </Text>
+                 </Text>
           </group>
+        )}
         </group>
       );
     })}
-
   </group>
 )}
-    </group>
-  );
+</group>
+);
 }

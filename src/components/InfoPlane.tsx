@@ -50,7 +50,6 @@ const infoPlaneColors: Record<string, string> = {
   quallen: "#369e9e",
   salzpflanzen: "#75a839",
 };
-
 interface InfoPlanesProps extends GroupProps {
   locationId: string;
   showInfo: boolean;
@@ -161,11 +160,11 @@ const locationImages: Record<string, string[]> = {
    Pulsierende Bilder pro Standort (Index)
 ========================= */
 const pulsatingImages: Record<string, number[]> = {
-  quallen: [0, 2, 4],
-  algen: [1, 3, 5],
-  grillen: [0, 2, 4],
-  kitchen: [1, 3, 4],
-  salzpflanzen: [0, 2, 3],
+  quallen: [0,1, 2, 3, 4,5  ],
+  algen: [0,1,2, 3,4, 5, ],
+  grillen: [0, 1, 2,3, 4],
+  kitchen: [0,1,2, 3, 4,5],
+  salzpflanzen: [0, 1,2, 3,4 ],
 };
 /* =========================
    Bildunterschriften pro Standort (Platzhalter)
@@ -223,6 +222,7 @@ export default function InfoPlanes({
   const itemRefs = useRef<THREE.Group[]>([]);
   const closeRef = useRef<THREE.Group>(null);
   const imageRefs = useRef<THREE.Mesh[]>([]);
+  const [activeInfoIndex, setActiveInfoIndex] = useState<number | null>(null);
   
 
   // Close-Button schaut zur Kamera
@@ -245,12 +245,9 @@ export default function InfoPlanes({
       const mesh = imageRefs.current[index];
       if (!mesh) return;
   
-      // 🔹 Pulsstärke erhöhen (von 6% auf 10%)
-      const pulse = 1 + Math.sin(time * 2.5) * 0.10; // schneller + größer
+      const pulse = 1 + Math.sin(time * 2) * 0.08;
       mesh.scale.set(pulse, pulse, 1);
-  
-      // 🔹 Vertikale Bewegung etwas stärker
-      mesh.position.y = Math.sin(time * 1.8) * 0.06;
+      mesh.position.y = Math.sin(time * 1.5) * 0.04;
     });
   });
 
@@ -340,10 +337,10 @@ export default function InfoPlanes({
       const angle = startAngle + i * step;
 
       // 🟢 GRÖSSERE, EINHEITLICHE SPHÄRE
-      const radius = 4.6;
+      const radius = 5.6;
 
       // 👁️ Galerie-Höhe
-      const eyeLevel = 0.95;
+      const eyeLevel = 0.2;
 
       // 🔁 Zickzack rechts: unten → oben (etwas enger)
       const verticalOffset = 0.2;
@@ -371,9 +368,12 @@ export default function InfoPlanes({
           <mesh
   ref={(el) => {
     if (!el) return;
-    if (!imageRefs.current[i]) imageRefs.current[i] = el;
+    imageRefs.current[i] = el;
   }}
   position={[-0.85, 0, 0]}
+  onPointerDown={() => {
+    setActiveInfoIndex((prev) => (prev === i ? null : i));
+  }}
 >
   <planeGeometry args={[1.3, 0.85]} />
   <meshStandardMaterial map={tex} transparent />
@@ -394,7 +394,8 @@ export default function InfoPlanes({
           </Text>
 
           {/* Info-Box: näher ans Bild gerückt */}
-          <group position={[0.48, 0, 0]}>
+          {activeInfoIndex === i && (
+  <group position={[0.48, 0, 0]}>
             <RoundedBox args={[1.3, 0.9, 0.06]} radius={0.04}>
               <meshStandardMaterial
                 color={infoPlaneColors[locationId] || "#2B4E4C"}
@@ -402,6 +403,7 @@ export default function InfoPlanes({
                 metalness={0.1}
               />
             </RoundedBox>
+
 
             <Text
               position={[0, 0.32, 0.04]}
@@ -430,14 +432,14 @@ export default function InfoPlanes({
               {planeInfo.content.length > 0
                 ? planeInfo.content.map((line) => `• ${line}`).join("\n")
                 : "HINZUFÜGEN"}
-            </Text>
+                 </Text>
           </group>
+        )}
         </group>
       );
     })}
-
   </group>
 )}
-    </group>
-  );
+</group>
+);
 }

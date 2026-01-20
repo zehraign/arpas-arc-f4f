@@ -280,7 +280,11 @@ export default function App({ content_types, scene, topic }: AppProps) {
             {/* INFO PLANE */}
             {activeLocation?.infoId && (
               <Billboard position={[3, 0.5, -1]}>
-                <InfoPlanes locationId={activeLocation.infoId} showInfo={showInfo} setShowInfo={setShowInfo} />
+             <InfoPlanes
+  locationId={activeLocation.infoId}
+  showInfo={showInfo}
+  setShowInfo={setShowInfo}
+/>
               </Billboard>
             )}
           </IfInSessionMode>

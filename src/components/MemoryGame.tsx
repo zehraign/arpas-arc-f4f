@@ -206,7 +206,7 @@ export default function MemoryGame({ onClose }: MemoryGameProps) {
           </RoundedBox>
           <Text position={[0, 0.15, 0.06]} fontSize={0.08} color="#285883" maxWidth={1.6} textAlign="center">
             🎉 Herzlichen Glückwunsch! 🎉{"\n"}
-            Badge freigeschaltet!
+            Du hast das Memory erfolgreich abgeschlossen!
           </Text>
           <Text position={[0, -0.18, 0.06]} fontSize={0.07} color="#244f73">
             Zeit: {formatTime(time)}

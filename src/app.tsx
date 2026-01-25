@@ -277,7 +277,7 @@ export default function App({ content_types, scene, topic }: AppProps) {
               />
             )}
 
-            {/* INFO PLANES – FEST IM RAUM */}
+            {/* INFO PLANES –*/}
 {activeLocation?.infoId && !showQuiz && !showPuzzle && !showMemory && (
   <group position={[3, 0.5, -1]}>
     <InfoPlanes

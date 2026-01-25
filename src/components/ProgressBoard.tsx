@@ -109,7 +109,7 @@ export default function ProgressBoard({ collected }: ProgressBoardProps) {
       <mesh>
         <circleGeometry args={[0.1, 32]} />
         <meshStandardMaterial
-          color={isCollected ? "#4CAF50" : "#555"}
+          color={isCollected ? "#347d37" : "#555"}
           emissive={isCollected ? new THREE.Color("#2e7d32") : undefined}
           emissiveIntensity={isCollected ? 0.6 : 0}
         />

@@ -1,22 +1,16 @@
-
 import { GroupProps, useFrame, useThree } from "@react-three/fiber";
 import { Text, RoundedBox } from "@react-three/drei";
 import { useState, useRef, useMemo, useEffect } from "react";
 import * as THREE from "three";
-import { TextureLoader } from "three";
 import { useTexture } from "@react-three/drei";
 
 const IMAGE_WIDTH = 1.4 
 const IMAGE_HEIGHT = 0.95
 
-const INFO_PLANE_OFFSET_X = IMAGE_WIDTH + 0.2; // 👈 Abstand Info-Plane
+const INFO_PLANE_OFFSET_X = IMAGE_WIDTH + 0.2; // Abstand Info-Plane
+const GALLERY_SCALE = 1.25;  
 
-const GALLERY_RADIUS = 5.6 
-const GALLERY_Y_BASE = 0.2
-const GALLERY_Y_OFFSET = 0.25
-const GALLERY_SCALE = 1.25; // 
-
-// ================= Sphärische Bild-Positionen  =================
+// --> Sphärische Bild-Positionen  
 const IMAGE_RADIUS = 4.2;        
 const IMAGE_BASE_Y = 1.15;       
 const IMAGE_Y_VARIATION = 0.35;  
@@ -35,10 +29,8 @@ const GALLERY_RADIUS_IMAGES = 2.6;
 const GALLERY_BASE_Y = 1.3;
 const GALLERY_Y_VARIATION = 0.35;
 
+// PRELOAD HOOK
 
-/* =========================
-   PRELOAD HOOK
-========================= */
 export function usePreloadTextures(urls: string[]) {
   const [textures, setTextures] = useState<THREE.Texture[]>([]);
 
@@ -72,24 +64,17 @@ export function usePreloadTextures(urls: string[]) {
   return textures;
 }
 
-
 // Farben für jeden Standort
 const infoPlaneColors: Record<string, string> = {
-  grillen: "#db8830",
+  grillen: "#e8a054",
   kitchen: "#2BB0A6",
-  algen: "#5fcf65",
+  algen: "#6ceb73",
   quallen: "#369e9e",
-  salzpflanzen: "#75a839",
+  salzpflanzen: "#92bf5c",
 };
-interface InfoPlanesProps extends GroupProps {
-  locationId: string;
-  showInfo: boolean;
-  setShowInfo: (val: boolean) => void;
-}
 
-/* =========================
-   INFO CONTENT
-========================= */
+//   INFO CONTENT
+
 const infoContent: Record<string, { title: string; content: string[] }[]> = {
   algen: [
     { title: "Warum Algen?", content: ["Wachsen sehr schnell", "Brauchen kaum Ackerland, Süßwasser oder Dünger", "Schonend für Umwelt und Klima"] },
@@ -131,9 +116,8 @@ const infoContent: Record<string, { title: string; content: string[] }[]> = {
   ],
 };
 
-/* =========================
-   BUTTON TEXTUREN
-========================= */
+//   BUTTON TEXTUREN
+
 const buttonTextures: Record<string, string> = {
   quallen: "/static/textures/qualli.png",
   grillen: "/static/textures/grille.png",
@@ -142,9 +126,8 @@ const buttonTextures: Record<string, string> = {
   salzpflanzen: "/static/textures/salzpflanze.png",
 };
 
-/* =========================
-   BILDER PRO STANDORT
-========================= */
+// BILDER PRO STANDORT
+
 const locationImages: Record<string, string[]> = {
   quallen: [
     "/static/images/Qualle/Qualle1.png",
@@ -187,9 +170,8 @@ const locationImages: Record<string, string[]> = {
 };
 
 
-/* =========================
-   Pulsierende Bilder pro Standort (Index)
-========================= */
+//   Pulsierende Bilder pro Standort 
+
 const pulsatingImages: Record<string, number[]> = {
   quallen: [0,1, 2, 3, 4,5  ],
   algen: [0,1,2, 3,4, 5, ],
@@ -197,9 +179,8 @@ const pulsatingImages: Record<string, number[]> = {
   kitchen: [0,1,2, 3, 4,5],
   salzpflanzen: [0, 1,2, 3,4 ],
 };
-/* =========================
-   Bildunterschriften pro Standort (Platzhalter)
-========================= */
+//  Bildunterschriften pro Standort 
+
 const locationCaptions: Record<string, string[]> = {
   quallen: ["AUTOR", "AUTOR", "AUTOR", "AUTOR", "AUTOR", "AUTOR", "AUTOR", "AUTOR", "AUTOR"],
   salzpflanzen: ["AUTOR", "AUTOR", "AUTOR", "AUTOR", "AUTOR", "AUTOR"], //Queller im Frühjahr Ulrike Graeber https://www.badoldesloe.de/index.php?object=adr|2965.1229.1||1|&PVID=352&previewMode&gipsy=1&viewFrame=true
@@ -210,12 +191,8 @@ const locationCaptions: Record<string, string[]> = {
 
 
 
+//   Bild-Button (Billboard)
 
-
-
-/* =========================
-   Bild-Button (Billboard)
-========================= */
 function ImageButton({ texturePath, onClick }: { texturePath: string; onClick: () => void }) {
   const ref = useRef<THREE.Mesh>(null);
   const { camera } = useThree();
@@ -240,9 +217,8 @@ function ImageButton({ texturePath, onClick }: { texturePath: string; onClick: (
   );
 }
 
-/* =========================
-   InfoPlanes Component (feste Weltpositionen)
-========================= */
+//  InfoPlanes Component (feste Weltpositionen)
+
 interface InfoPlanesProps {
   locationId: string;
   showInfo: boolean;
@@ -315,8 +291,6 @@ useFrame(() => {
   }
 
 
-
-
   return (
     <group {...props}>
       {/* ================= Standort Button  ================= */}
@@ -325,7 +299,6 @@ useFrame(() => {
           <ImageButton texturePath={texturePath} onClick={() => setShowInfo(true)} />
         </group>
       )}
-
 
 
       {/* ================= InfoGalerie ================= */}
@@ -379,16 +352,11 @@ useFrame(() => {
           </group>
 
 
-
-
-
           {/* ================= Bilder im Raum ================= */}
           {textures.map((tex, i) => {
             const pos = positions[i];
             const caption = locationCaptions[locationId]?.[i] || "AUTOR";
             const planeInfo = planes[i] || { title: "HINZUFÜGEN", content: [] };
-
-
 
             return (
     <group
@@ -409,8 +377,6 @@ useFrame(() => {
           );
         }}
       >
-        
-
 
 
                   <RoundedBox args={[IMAGE_WIDTH + 0.08, IMAGE_HEIGHT + 0.08, 0.04]} radius={0.04}>

@@ -24,7 +24,7 @@ export const quizLocations = [
     id: "algen",
     name: "Gebäude A – Algenlabor",
     //coords: { lat: 52.540636660690225, lon: 13.391817612557453 },
-    coords: { lat: 52.544440636660690225, lon: 13.3918176125574533 },
+    coords: { lat: 52.451405444313316, lon: 13.477409860925572 },
   //52.52668739066162, 13.36037664808089 zuhause
     radius: 100, // lat: 52.540636660690225, lon: 13.391817612557453 
 

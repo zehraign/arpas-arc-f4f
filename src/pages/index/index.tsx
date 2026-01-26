@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useCallback, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useCallback, useState, type MouseEvent } from "react";
 import { useXRInputSourceEvent, useXRStore, XRDomOverlay } from "@react-three/xr";
 import * as THREE from "three";
 import { Header, Footer, DirectionalArrow, HelpMenu, ObjectDescription } from "../../components-ui";
@@ -32,8 +32,19 @@ const debounce = (func: () => void, delay: number) => {
     };
 };
 
-const IndexPage = ({ contentTypes, sceneData, topicData, minioData }:
-    { contentTypes: ContentTypesData, sceneData: SceneData, topicData: TopicData, minioData?: MinioData }) => {
+const IndexPage = ({
+    contentTypes,
+    sceneData,
+    topicData,
+    minioData,
+    overlayHidden = false,
+}: {
+    contentTypes: ContentTypesData;
+    sceneData: SceneData;
+    topicData: TopicData;
+    minioData?: MinioData;
+    overlayHidden?: boolean;
+}) => {
     // XR objects and values
     const store = useXRStore();
     const { camera, ...state } = useThree();
@@ -186,14 +197,14 @@ const IndexPage = ({ contentTypes, sceneData, topicData, minioData }:
         "all",
         "selectstart",
         (event) => {
-            if (!scene) return;
+            if (overlayHidden || !scene) return;
 
             const selectedObjectId = getIntersectedSceneObject(event, { ...state, camera }, scene.objects);
             if (selectedObjectId) {
                 setSelectedObject(selectedObjectId);
             }
         },
-        [scene]
+        [scene, overlayHidden]
     );
 
     // Update compass position if camera moves significantly
@@ -204,104 +215,125 @@ const IndexPage = ({ contentTypes, sceneData, topicData, minioData }:
         }
     }, [camera.position.x, camera.position.z]);
 
+    const handleOverlayClick = useCallback(
+        (event: MouseEvent<HTMLDivElement>) => {
+            if (overlayHidden || event.defaultPrevented) return;
+            const target = event.target as HTMLElement | null;
+            if (!target) return;
+            if (
+                target.closest(
+                    "button, a, input, textarea, select, [role='button'], [role='textbox'], [contenteditable='true'], .input-div, [data-no-header-toggle]"
+                )
+            ) {
+                return;
+            }
+            setShowArHeader((prev) => !prev);
+        },
+        [overlayHidden]
+    );
+
     return (
         <>
             <XRDomOverlay
                 style={{ width: "100%", height: "100%", fontSize: `${fontSize}px`, boxSizing: "border-box" }}
-                onClick={() => setShowArHeader((prev) => !prev)}
+                onClick={handleOverlayClick}
             >
-                <div className="xr-message-stack">
-                    {messages.map((msg) => (
-                        <div key={msg.id} className="xr-loading-label py-2 px-3 fw-bold text-center" style={{ fontSize: `${fontSize * 0.8}px`, color: msg.color ?? "white" }}>
-                            {msg.text}
+                {!overlayHidden && (
+                    <>
+                        <div className="xr-message-stack">
+                            {messages.map((msg) => (
+                                <div key={msg.id} className="xr-loading-label py-2 px-3 fw-bold text-center" style={{ fontSize: `${fontSize * 0.8}px`, color: msg.color ?? "white" }}>
+                                    {msg.text}
+                                </div>
+                            ))}
                         </div>
-                    ))}
-                </div>
 
-                {/* Header */}
-                <div className={`ar-header${showArHeader ? " ar-header--visible" : ""}`}>
-                    <Header
-                        isHelpVisible={isHelpVisible}
-                        onToggleHelp={() => setIsHelpVisible((v) => !v)}
-                        onLeave={() => store.getState().session?.end()}
-                        fontSize={fontSize}
-                    />
-                </div>
-                <CharacterOverlay
-                    lines={characterLines}
-                    characterImageSrc={`${import.meta.env.BASE_URL}images/character/guide.png`}
-                    isVisible={showCharacterOverlay}
-                    onFinished={() => setShowCharacterOverlay(false)}
-                />
+                        {/* Header */}
+                        <div className={`ar-header${showArHeader ? " ar-header--visible" : ""}`}>
+                            <Header
+                                isHelpVisible={isHelpVisible}
+                                onToggleHelp={() => setIsHelpVisible((v) => !v)}
+                                onLeave={() => store.getState().session?.end()}
+                                fontSize={fontSize}
+                            />
+                        </div>
+                        <CharacterOverlay
+                            lines={characterLines}
+                            characterImageSrc={`${import.meta.env.BASE_URL}images/character/guide.png`}
+                            isVisible={showCharacterOverlay}
+                            onFinished={() => setShowCharacterOverlay(false)}
+                        />
 
 
-                {/* Content */}
-                <div style={{ top: `${headerHeight}px` }}>
-                    <Compass2D showCardinal={!fixedWorldPosition && !fixedWorldRotation} />
-                    <div id="compass-container" style={{ background: "transparent" }}>
-                        <button
-                            className={`compass-fix-btn${fixedWorldPosition && fixedWorldRotation ? " active" : ""}`}
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => {
-                                if (fixedWorldPosition && fixedWorldRotation) {
-                                    setFixedWorldPosition(null);
-                                    setFixedWorldRotation(null);
-                                } else {
-                                    setFixedWorldPosition(worldPosition);
-                                    setFixedWorldRotation(worldRotation);
-                                }
+                        {/* Content */}
+                        <div style={{ top: `${headerHeight}px` }}>
+                            <Compass2D showCardinal={!fixedWorldPosition && !fixedWorldRotation} />
+                            <div id="compass-container" style={{ background: "transparent" }}>
+                                <button
+                                    className={`compass-fix-btn${fixedWorldPosition && fixedWorldRotation ? " active" : ""}`}
+                                    onMouseDown={(e) => e.preventDefault()}
+                                    onClick={() => {
+                                        if (fixedWorldPosition && fixedWorldRotation) {
+                                            setFixedWorldPosition(null);
+                                            setFixedWorldRotation(null);
+                                        } else {
+                                            setFixedWorldPosition(worldPosition);
+                                            setFixedWorldRotation(worldRotation);
+                                        }
+                                    }}
+                                >
+                                    { }
+                                </button>
+                            </div>
+                        </div>
+
+                        <HelpMenu
+                            isVisible={isHelpVisible}
+                            onClose={() => setIsHelpVisible(false)}
+                            onLeave={() => store.getState().session?.end()}
+                            headerHeight={headerHeight}
+                            fontSize={fontSize}
+                        />
+
+                        {selectedObject && (
+                            <ObjectDescription
+                                objectId={selectedObject}
+                                variantId={selectedVariants[selectedObject]}
+                                headerHeight={headerHeight}
+                                setCurrentVariant={setCurrentVariant}
+                                onClose={() => setSelectedObject(null)}
+                                fontSize={fontSize}
+                            />
+                        )}
+
+                        {/* Footer */}
+                        {/* <Footer>
+                            <small className="text-dark">Selected: {selectedObject ?? "None"}</small>
+                            <small className="text-muted">Heading: {worldRotation.toFixed(2)} rad</small>
+                        </Footer> */}
+
+                        {/* Debugging box can be removed or kept */}
+                        {/* <div
+                            style={{
+                                position: "absolute",
+                                bottom: "10px",
+                                left: "10px",
+                                backgroundColor: "rgba(0, 0, 0, 0.7)",
+                                color: "white",
+                                padding: "10px",
+                                borderRadius: "5px",
+                                zIndex: 1000,
                             }}
                         >
-                            { }
-                        </button>
-                    </div>
-                </div>
-
-                <HelpMenu
-                    isVisible={isHelpVisible}
-                    onClose={() => setIsHelpVisible(false)}
-                    onLeave={() => store.getState().session?.end()}
-                    headerHeight={headerHeight}
-                    fontSize={fontSize}
-                />
-
-                {selectedObject && (
-                    <ObjectDescription
-                        objectId={selectedObject}
-                        variantId={selectedVariants[selectedObject]}
-                        headerHeight={headerHeight}
-                        setCurrentVariant={setCurrentVariant}
-                        onClose={() => setSelectedObject(null)}
-                        fontSize={fontSize}
-                    />
+                            <p>world rot: {worldRotation.toFixed(3)}</p>
+                            <p>Selected Object: {selectedObject ?? "None"}</p>
+                        </div> */}
+                    </>
                 )}
-
-                {/* Footer */}
-                {/* <Footer>
-                    <small className="text-dark">Selected: {selectedObject ?? "None"}</small>
-                    <small className="text-muted">Heading: {worldRotation.toFixed(2)} rad</small>
-                </Footer> */}
-
-                {/* Debugging box can be removed or kept */}
-                {/* <div
-                    style={{
-                        position: "absolute",
-                        bottom: "10px",
-                        left: "10px",
-                        backgroundColor: "rgba(0, 0, 0, 0.7)",
-                        color: "white",
-                        padding: "10px",
-                        borderRadius: "5px",
-                        zIndex: 1000,
-                    }}
-                >
-                    <p>world rot: {worldRotation.toFixed(3)}</p>
-                    <p>Selected Object: {selectedObject ?? "None"}</p>
-                </div> */}
             </XRDomOverlay>
 
             {/* 3D Scene */}
-            {scene && (
+            {!overlayHidden && scene && (
                 <>
                     <ambientLight intensity={5} />
                     <directionalLight intensity={10} />

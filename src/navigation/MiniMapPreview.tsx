@@ -8,12 +8,13 @@ import "./miniMapPreview.css";
 type MiniMapPreviewProps = {
   isArActive: boolean;
   portalRoot?: Element | null;
+  hidden?: boolean;
 };
 
-export default function MiniMapPreview({ isArActive, portalRoot }: MiniMapPreviewProps) {
+export default function MiniMapPreview({ isArActive, portalRoot, hidden = false }: MiniMapPreviewProps) {
   const { open } = useNavigationOverlay();
 
-  if (!isArActive) return null;
+  if (!isArActive || hidden) return null;
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key === "Enter" || event.key === " ") {

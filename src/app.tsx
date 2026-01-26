@@ -215,9 +215,9 @@ export default function App({ content_types, scene, topic }: AppProps) {
                 {activeLocation.features?.puzzle && (
                   <group position={[0.6, 0.2, -1]}>
                     <RoundedBox args={[0.9, 0.32, 0.08]} radius={0.06} onPointerDown={() => setShowPuzzle(true)}>
-                      <meshStandardMaterial color="#3c8c40" />
+                      <meshStandardMaterial color="#369e9e" />  {/* button farbe ändern dass beide button verschiedene farben haben*/}
                     </RoundedBox>
-                    <Text position={[0, 0, 0.06]} fontSize={0.065} color="white">Puzzle 🌱</Text>
+                    <Text position={[0, 0, 0.06]} fontSize={0.065} color="white">Puzzle 🧩</Text>
                   </group>
                 )}
 

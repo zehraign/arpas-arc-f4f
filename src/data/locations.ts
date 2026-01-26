@@ -1,10 +1,10 @@
 export const quizLocations = [
   {
     id: "kitchen",
-    name: "Future Food Kitchen",
+    name: "Future Food Kitchen", // video 52.45670427037289, 13.526339844480509
     //coords: { lat: 52.45510590524545, lon: 13.525163019961198 },  
-    coords: { lat: 52.52668739066162, lon: 13.36037664808089 },
-    radius: 100, // richtige coords: { lat: 52.45554951375966, lon: 13.52518413859404 }, 
+    coords: { lat: 52.45670427037289, lon: 13.526339844480509 },
+    radius: 150, // richtige coords: { lat: 52.45554951375966, lon: 13.52518413859404 }, 
 
     features: {
       quiz: {
@@ -46,7 +46,7 @@ export const quizLocations = [
     id: "quallen",
     name: "Bibliothek – Quallenlabor",
    //s coords: { lat: 52.45510590524545, lon: 13.525163019961198 },
-    coords: { lat: 52.540636660690225, lon: 13.391817612557453 },
+    coords: { lat: 52.45510590524545, lon: 13.525163019961198 },
   
     radius: 100, 
 

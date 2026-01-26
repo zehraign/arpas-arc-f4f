@@ -36,3 +36,8 @@ export const useNavigationOverlay = () => {
   }
   return context;
 };
+
+export const useNavigationOverlayOpen = () => {
+  const context = useContext(NavigationOverlayContext);
+  return context?.isOpen ?? false;
+};

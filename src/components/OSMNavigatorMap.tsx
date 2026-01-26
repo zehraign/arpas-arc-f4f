@@ -41,7 +41,9 @@ export default function OSMNavigatorMap({ variant = "full", className }: OSMNavi
     clearDestination,
   } = useNavigationModel();
   const mapRef = useRef<L.Map | null>(null);
-  const [followUser, setFollowUser] = useState(false);
+  const userMovedRef = useRef(false);
+  const isMini = variant === "mini";
+  const isInteractive = !isMini;
 
   const distanceLabel = useMemo(() => {
     if (routeDistance === null) return "—";
@@ -57,17 +59,32 @@ export default function OSMNavigatorMap({ variant = "full", className }: OSMNavi
     ensureLeafletIcons();
   }, []);
 
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !isInteractive) return;
+
+    const markUserMoved = () => {
+      userMovedRef.current = true;
+    };
+
+    map.on("dragstart", markUserMoved);
+    map.on("zoomstart", markUserMoved);
+    map.on("movestart", markUserMoved);
+
+    return () => {
+      map.off("dragstart", markUserMoved);
+      map.off("zoomstart", markUserMoved);
+      map.off("movestart", markUserMoved);
+    };
+  }, [isInteractive]);
+
   const handleCenterOnMe = () => {
     const map = mapRef.current;
     if (!currentPos || !map) return;
-    setFollowUser(true);
+    userMovedRef.current = true;
     const zoom = Math.max(map.getZoom(), DEFAULT_ZOOM);
     map.flyTo(currentPos, zoom, { animate: true });
   };
-
-  const isMini = variant === "mini";
-  const isInteractive = !isMini;
-  const mapCenter = followUser && currentPos ? currentPos : center;
 
   return (
     <div className={["osm-navigator", isMini ? "osm-navigator--mini" : "", className].filter(Boolean).join(" ")}>
@@ -99,7 +116,7 @@ export default function OSMNavigatorMap({ variant = "full", className }: OSMNavi
       <div className="osm-nav__map">
         <MapContainer
           ref={mapRef}
-          center={mapCenter}
+          center={center}
           zoom={DEFAULT_ZOOM}
           scrollWheelZoom={isInteractive}
           dragging={isInteractive}
@@ -118,7 +135,7 @@ export default function OSMNavigatorMap({ variant = "full", className }: OSMNavi
                 click: () => setDestination(station),
               }}
             >
-              <Popup className="osm-nav__popup" closeButton={false}>
+              <Popup className="osm-nav__popup" closeButton={false} autoPan={false}>
                 {station.name}
               </Popup>
             </Marker>
@@ -130,7 +147,7 @@ export default function OSMNavigatorMap({ variant = "full", className }: OSMNavi
               radius={8}
               pathOptions={{ color: "var(--accent-dark)", fillColor: "var(--accent)", fillOpacity: 0.9 }}
             >
-              <Popup className="osm-nav__popup" closeButton={false}>
+              <Popup className="osm-nav__popup" closeButton={false} autoPan={false}>
                 Du bist hier
               </Popup>
             </CircleMarker>

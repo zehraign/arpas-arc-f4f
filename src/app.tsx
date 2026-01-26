@@ -74,6 +74,7 @@ export default function App({ content_types, scene, topic }: AppProps) {
   const [inAR, setInAR] = useState(false);
   const [xrSessionActive, setXrSessionActive] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   
   /* Game States */
   const [activeLocation, setActiveLocation] = useState<any | null>(null);
@@ -131,6 +132,9 @@ export default function App({ content_types, scene, topic }: AppProps) {
   /* Geo-Location Logik */
   useEffect(() => {
     if (!inAR) return;
+  
+    setIsLoading(true); //  LOADING START
+  
     navigator.geolocation.getCurrentPosition(async (pos) => {
       const { latitude, longitude } = pos.coords;
       const found = quizLocations.find((loc) => {
@@ -148,6 +152,9 @@ export default function App({ content_types, scene, topic }: AppProps) {
           setCanStartQuiz(true);
         }
       } else { setCanStartQuiz(false); }
+      setIsLoading(false); //  LOADING ENDE
+
+
     });
   }, [inAR]);
 
@@ -180,8 +187,36 @@ export default function App({ content_types, scene, topic }: AppProps) {
           <DomOverlayRootSync onChange={setDomOverlayRoot} />
           <IfInSessionMode allow="immersive-ar">
             
+          {isLoading && (
+  <Billboard position={[0, 1.4, -1.8]}  >
+    <group>
+      <RoundedBox args={[1.5, 0.4, 0.06]} radius={0.05}>
+        <meshStandardMaterial color="#84b3b0" />
+      </RoundedBox>
+
+      <Text
+        position={[0, 0.05, 0.04]}
+        fontSize={0.08}
+        color="#105c57"
+        textAlign="center"
+      >
+        Einen Moment bitte…
+      </Text>
+
+      <Text
+        position={[0, -0.15, 0.04]}
+        fontSize={0.055}
+        color="#105c57"
+        textAlign="center"
+      >
+        Inhalte werden geladen
+      </Text>
+    </group>
+  </Billboard>
+)}
+
             {/* UI: Progress Board (nur zeigen wenn kein Spiel aktiv) */}
-            {!showInfo && !showMemory && !showQuiz && !showPuzzle && (
+            { !showInfo && !showMemory && !showQuiz && !showPuzzle && (
               <>
                 <IndexPage contentTypes={content_types} sceneData={scene} topicData={topic} />
                 <Billboard position={[0, 1.2, -1.2]}>
@@ -277,7 +312,7 @@ export default function App({ content_types, scene, topic }: AppProps) {
               />
             )}
 
-            {/* INFO PLANES – FEST IM RAUM */}
+            {/* INFO PLANES –*/}
 {activeLocation?.infoId && !showQuiz && !showPuzzle && !showMemory && (
   <group position={[3, 0.5, -1]}>
     <InfoPlanes

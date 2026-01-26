@@ -1,10 +1,9 @@
 export const quizLocations = [
   {
     id: "kitchen",
-    name: "Future Food Kitchen", // video 52.45670427037289, 13.526339844480509
-    //coords: { lat: 52.45510590524545, lon: 13.525163019961198 },  
-    coords: { lat: 52.45670427037289, lon: 13.526339844480509 },
-    radius: 150, // richtige coords: { lat: 52.45554951375966, lon: 13.52518413859404 }, 
+    name: "Future Food Kitchen",
+    coords: { lat: 52.52667795846103, lon: 13.36035865876291 },
+    radius: 100, // richtige coords: { lat: 52.45554951375966, lon: 13.52518413859404 }, 
 
     features: {
       quiz: {
@@ -22,9 +21,10 @@ export const quizLocations = [
   {
     id: "algen",
     name: "Gebäude A – Algenlabor",
-    coords: { lat: 52.540636660690225, lon: 13.391817612557453 },
-  //  coords: { lat: 52.540636660690225, lon: 13.391817612557453 },//52.52668739066162, 13.36037664808089 zuhause
-    radius: 100, // lat: 52.540636660690225, lon: 13.391817612557453 richtige kooridaten 
+    //coords: { lat: 52.540636660690225, lon: 13.391817612557453 },
+    coords: { lat: 52.544440636660690225, lon: 13.3918176125574533 },
+  //52.52667795846103, 13.36035865876291 zuhause
+    radius: 100, // lat: 52.540636660690225, lon: 13.391817612557453 
 
     features: {
       quiz: {
@@ -70,7 +70,8 @@ export const quizLocations = [
   {
     id: "salzpflanzen",
     name: "Gebäude C – Salzpflanzenlabor",
-    coords: { lat: 52.45639953688056, lon: 13.525978466276289 },
+   
+     coords: { lat: 52.45639953688056, lon: 13.525978466276289 },
     radius: 50,
 
     features: {
@@ -89,7 +90,7 @@ export const quizLocations = [
   {
     id: "grillen",
     name: "Gebäude E – Grillenlabor",
-   // coords: { lat: 52.540636660690225, lon: 13.391817612557453 },
+    
    coords: { lat: 52.45639953688056, lon: 13.525978466276289 },
     radius: 50,
 

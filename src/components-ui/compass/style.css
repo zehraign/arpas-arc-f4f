@@ -51,3 +51,12 @@
     font-size: 1.5vh;
     color: white;
 }
+
+@media (orientation: portrait) {
+  #compass-container {
+    top: calc(env(safe-area-inset-top, 0px) + 16px + clamp(96px, 18vw, 112px) + 12px);
+    right: 16px;
+    margin-top: 0;
+  }
+}
+

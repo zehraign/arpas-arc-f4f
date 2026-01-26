@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { CircleMarker, MapContainer, Marker, Polyline, Popup, TileLayer } from "react-leaflet";
 import leaflet from "leaflet";
 import L from "leaflet";
@@ -40,7 +40,7 @@ export default function OSMNavigatorMap({ variant = "full", className }: OSMNavi
     setDestination,
     clearDestination,
   } = useNavigationModel();
-  const [map, setMap] = useState<L.Map | null>(null);
+  const mapRef = useRef<L.Map | null>(null);
 
   const distanceLabel = useMemo(() => {
     if (routeDistance === null) return "—";
@@ -57,6 +57,7 @@ export default function OSMNavigatorMap({ variant = "full", className }: OSMNavi
   }, []);
 
   const handleCenterOnMe = () => {
+    const map = mapRef.current;
     if (!currentPos || !map) return;
     const zoom = Math.max(map.getZoom(), DEFAULT_ZOOM);
     map.flyTo(currentPos, zoom, { animate: true });
@@ -94,6 +95,7 @@ export default function OSMNavigatorMap({ variant = "full", className }: OSMNavi
 
       <div className="osm-nav__map">
         <MapContainer
+          ref={mapRef}
           center={center}
           zoom={DEFAULT_ZOOM}
           scrollWheelZoom={isInteractive}

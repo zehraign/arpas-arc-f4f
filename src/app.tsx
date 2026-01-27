@@ -83,6 +83,7 @@ export default function App({ content_types, scene, topic }: AppProps) {
   const [showPuzzle, setShowPuzzle] = useState(false);
   const [showMemory, setShowMemory] = useState(false);
   const [canStartQuiz, setCanStartQuiz] = useState(false);
+  const isOverlayHidden = showInfo || showMemory || showQuiz || showPuzzle;
 
   /* XR Overlay Sync */
   const [domOverlayRoot, setDomOverlayRoot] = useState<Element | null>(null);
@@ -216,14 +217,19 @@ export default function App({ content_types, scene, topic }: AppProps) {
 )}
 
             {/* UI: Progress Board (nur zeigen wenn kein Spiel aktiv) */}
-            { !showInfo && !showMemory && !showQuiz && !showPuzzle && (
-              <>
-                <IndexPage contentTypes={content_types} sceneData={scene} topicData={topic} />
+            <>
+              <IndexPage
+                contentTypes={content_types}
+                sceneData={scene}
+                topicData={topic}
+                overlayHidden={isOverlayHidden}
+              />
+              {!isOverlayHidden && (
                 <Billboard position={[0, 1.2, -1.2]}>
                   <ProgressBoard collected={collectedBadges} />
                 </Billboard>
-              </>
-            )}
+              )}
+            </>
 
             {/* UI: Badge Popup Animation */}
             {newBadgeText && !showInfo && (
@@ -328,7 +334,7 @@ export default function App({ content_types, scene, topic }: AppProps) {
 
       <NavigationOverlayStateSync isArActive={xrSessionActive} />
       <NavigationModelProvider>
-        <MiniMapPreview isArActive={inAR} portalRoot={navPortalRoot} />
+        <MiniMapPreview isArActive={inAR} portalRoot={navPortalRoot} hidden={isOverlayHidden} />
         <NavigationOverlay portalRoot={navPortalRoot} showSessionWarning={inAR && !xrSessionActive} />
       </NavigationModelProvider>
     </NavigationOverlayProvider>

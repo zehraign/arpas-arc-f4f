@@ -70,7 +70,7 @@ const MeshObject = ({
 
             setLoading(true);
             console.log(`Loading model for meshObjectId: ${meshObjectId}, sceneObjectId: ${sceneObjectId}`);
-            addScreenMessage(`Model ${modelName} is loading...`, `loading_model_${meshObjectId}`);
+         //   addScreenMessage(`Model ${modelName} is loading...`, `loading_model_${meshObjectId}`);
 
             try {
                 let blobUrl: string;
@@ -104,8 +104,8 @@ const MeshObject = ({
                     // Remove loading message on success
                     setLoading(false);
                     removeScreenMessage(`loading_model_${meshObjectId}`);
-                    if (!wasCached)
-                        addScreenMessage(`Model ${modelName} loaded successfully`, `model_loaded_${meshObjectId}`, 5000, "#7bf1e3");
+                    //if (!wasCached)
+                      //  addScreenMessage(`Model ${modelName} loaded successfully`, `model_loaded_${meshObjectId}`, 5000, "#7bf1e3");
                 }
             } catch (error) {
                 console.warn(`Failed to load model: ${meshObjectId}. Retry attempt ${retryCount + 1}`);

@@ -117,9 +117,9 @@ function LocationInteractionButtons({
       {activeLocation.features?.puzzle && (
         <group position={[0.6, 0.2, -1]}>
           <RoundedBox args={[0.9, 0.32, 0.08]} radius={0.06} onPointerDown={() => handleStartInteraction("puzzle")}>
-            <meshStandardMaterial color="#3c8c40" />
+            <meshStandardMaterial color={activeLocation.button?.color} />
           </RoundedBox>
-          <Text position={[0, 0, 0.06]} fontSize={0.065} color="white">Puzzle 🌱</Text>
+          <Text position={[0, 0, 0.06]} fontSize={0.065} color="white">Puzzle 🧩</Text>
         </group>
       )}
 

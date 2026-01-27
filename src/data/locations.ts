@@ -2,8 +2,8 @@ export const quizLocations = [
   {
     id: "kitchen",
     name: "Future Food Kitchen",
-    coords: { lat: 52.526676774378224, lon: 13.360361329315147 },
-    radius: 100, // richtige coords: { lat: 52.45554951375966, lon: 13.52518413859404 }, 
+    coords: { lat: 52.45554951375966, lon: 13.52518413859404 },
+    radius: 10, // richtige coords: { lat: 52.45554951375966, lon: 13.52518413859404 }, 
 
     features: {
       quiz: {
@@ -22,9 +22,10 @@ export const quizLocations = [
     id: "algen",
     name: "Gebäude A – Algenlabor",
     //coords: { lat: 52.540636660690225, lon: 13.391817612557453 },
-    coords: { lat: 52.544440636660690225, lon: 13.3918176125574533 },
-  //52.526676774378224, 13.360361329315147 zuhause
-    radius: 100, // lat: 52.540636660690225, lon: 13.391817612557453 
+    coords: { lat: 52.526675994617136, lon: 13.360365790617525 },
+  //lat: 52.526675994617136, lon: 13.360365790617525 zuhause 
+  // zuhause 2 lat: 52.526589996755135, lon: 13.360429487398113
+    radius: 50, 
 
     features: {
       quiz: {
@@ -46,7 +47,7 @@ export const quizLocations = [
     id: "quallen",
     name: "Bibliothek – Quallenlabor",
    //s coords: { lat: 52.45510590524545, lon: 13.525163019961198 },
-    coords: { lat: 52.45510590524545, lon: 13.525163019961198 },
+    coords: { lat: 52.45510590524545, lon: 13.525163019961198  },
   
     radius: 100, 
 
@@ -56,7 +57,7 @@ export const quizLocations = [
       },
     
     puzzle: {
-      image: "/static/images/puzzle/qualle.png", //  NEU
+      image: "/static/images/puzzle/qualle.png", 
     },
   },
 

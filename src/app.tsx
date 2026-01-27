@@ -69,6 +69,73 @@ function DomOverlayRootSync({ onChange }: { onChange: (root: Element | null) => 
   return null;
 }
 
+type LocationInteractionButtonsProps = {
+  activeLocation: any;
+  canStartQuiz: boolean;
+  showQuiz: boolean;
+  showPuzzle: boolean;
+  showMemory: boolean;
+  showInfo: boolean;
+  setShowQuiz: (value: boolean) => void;
+  setShowPuzzle: (value: boolean) => void;
+  setShowMemory: (value: boolean) => void;
+};
+
+function LocationInteractionButtons({
+  activeLocation,
+  canStartQuiz,
+  showQuiz,
+  showPuzzle,
+  showMemory,
+  showInfo,
+  setShowQuiz,
+  setShowPuzzle,
+  setShowMemory,
+}: LocationInteractionButtonsProps) {
+  const { isOpen } = useNavigationOverlay();
+
+  const handleStartInteraction = (type: "quiz" | "puzzle" | "memory") => {
+    if (isOpen) return;
+    if (type === "quiz") setShowQuiz(true);
+    if (type === "puzzle") setShowPuzzle(true);
+    if (type === "memory") setShowMemory(true);
+  };
+
+  if (!activeLocation || showQuiz || showPuzzle || showMemory || showInfo) return null;
+
+  return (
+    <group position={[0, 1, -1.4]}>
+      {canStartQuiz && (
+        <group position={[-0.6, 0.2, -1]}>
+          <RoundedBox args={[0.9, 0.32, 0.08]} radius={0.06} onPointerDown={() => handleStartInteraction("quiz")}>
+            <meshStandardMaterial color={activeLocation.button?.color} />
+          </RoundedBox>
+          <Text position={[0, 0, 0.06]} fontSize={0.065} color="white">{activeLocation.button?.label}</Text>
+        </group>
+      )}
+
+      {activeLocation.features?.puzzle && (
+        <group position={[0.6, 0.2, -1]}>
+          <RoundedBox args={[0.9, 0.32, 0.08]} radius={0.06} onPointerDown={() => handleStartInteraction("puzzle")}>
+            <meshStandardMaterial color="#3c8c40" />
+          </RoundedBox>
+          <Text position={[0, 0, 0.06]} fontSize={0.065} color="white">Puzzle 🌱</Text>
+        </group>
+      )}
+
+      {/* Memory Button (Aktiviert wenn Feature im Location-Objekt oder ID Kitchen) */}
+      {(activeLocation.features?.memory || activeLocation.id === "kitchen") && (
+        <group position={[0.6, 0.2, -1]}>
+          <RoundedBox args={[1.1, 0.32, 0.08]} radius={0.06} onPointerDown={() => handleStartInteraction("memory")}>
+            <meshStandardMaterial color="#149085" />
+          </RoundedBox>
+          <Text position={[0, 0, 0.06]} fontSize={0.065} color="white">Memory Spiel 🃏</Text>
+        </group>
+      )}
+    </group>
+  );
+}
+
 export default function App({ content_types, scene, topic }: AppProps) {
   /* UI States */
   const [inAR, setInAR] = useState(false);
@@ -242,37 +309,17 @@ export default function App({ content_types, scene, topic }: AppProps) {
             )}
 
             {/* Standort Interaktionen (Buttons) */}
-            {activeLocation && !showQuiz && !showPuzzle && !showMemory && !showInfo && (
-              <group position={[0, 1, -1.4]}>
-                {canStartQuiz && (
-                  <group position={[-0.6, 0.2, -1]}>
-                    <RoundedBox args={[0.9, 0.32, 0.08]} radius={0.06} onPointerDown={() => setShowQuiz(true)}>
-                      <meshStandardMaterial color={activeLocation.button?.color} />
-                    </RoundedBox>
-                    <Text position={[0, 0, 0.06]} fontSize={0.065} color="white">{activeLocation.button?.label}</Text>
-                  </group>
-                )}
-
-                {activeLocation.features?.puzzle && (
-                  <group position={[0.6, 0.2, -1]}>
-                    <RoundedBox args={[0.9, 0.32, 0.08]} radius={0.06} onPointerDown={() => setShowPuzzle(true)}>
-                      <meshStandardMaterial color="#369e9e" />  {/* button farbe ändern dass beide button verschiedene farben haben*/}
-                    </RoundedBox>
-                    <Text position={[0, 0, 0.06]} fontSize={0.065} color="white">Puzzle 🧩</Text>
-                  </group>
-                )}
-
-                {/* Memory Button (Aktiviert wenn Feature im Location-Objekt oder ID Kitchen) */}
-                {(activeLocation.features?.memory || activeLocation.id === "kitchen") && (
-                  <group position={[0.6, 0.2, -1]}>
-                    <RoundedBox args={[1.1, 0.32, 0.08]} radius={0.06} onPointerDown={() => setShowMemory(true)}>
-                      <meshStandardMaterial color="#149085" />
-                    </RoundedBox>
-                    <Text position={[0, 0, 0.06]} fontSize={0.065} color="white">Memory Spiel 🃏</Text>
-                  </group>
-                )}
-              </group>
-            )}
+            <LocationInteractionButtons
+              activeLocation={activeLocation}
+              canStartQuiz={canStartQuiz}
+              showQuiz={showQuiz}
+              showPuzzle={showPuzzle}
+              showMemory={showMemory}
+              showInfo={showInfo}
+              setShowQuiz={setShowQuiz}
+              setShowPuzzle={setShowPuzzle}
+              setShowMemory={setShowMemory}
+            />
 
             {/* --- GAME OVERLAYS --- */}
 

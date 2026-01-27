@@ -1,5 +1,7 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { Text, RoundedBox, useTexture } from "@react-three/drei";
+import { useFrame, useThree } from "@react-three/fiber";
+import * as THREE from "three";
 import MemoryCard from "./MemoryCard";
 import { memoryCards, MemoryCategory } from "../data/memoryCards";
 
@@ -43,7 +45,7 @@ const getSphericalCardPositions = (count: number) =>
 
 /* ---------------- COMPONENT ---------------- */
 interface MemoryGameProps {
-  onClose?: (completed: boolean) => void; // ✅ Geändert zu boolean
+  onClose?: (completed: boolean) => void; 
 }
 
 const CONGRATS_DURATION_MS = 7000;
@@ -52,7 +54,7 @@ export default function MemoryGame({ onClose }: MemoryGameProps) {
   const [cards, setCards] = useState<CardState[]>([]);
   const [selected, setSelected] = useState<number[]>([]);
   const [resetCount, setResetCount] = useState(0);
-  const [hasWon, setHasWon] = useState(false); // ✅ Speichert den Badge-Erfolg
+  const [hasWon, setHasWon] = useState(false); 
 
   const [time, setTime] = useState(0);
   const [running, setRunning] = useState(true);
@@ -64,6 +66,10 @@ export default function MemoryGame({ onClose }: MemoryGameProps) {
     salzpflanzen: 0,
     makroquallen: 0,
   });
+
+  // NEU: Refs und Hooks für Kamera-Tracking
+  const congratsRef = useRef<THREE.Group>(null);
+  const { camera } = useThree();
 
   const cardDataMap = useMemo(() => {
     const m = new Map<number, typeof memoryCards[0]>();
@@ -93,8 +99,17 @@ export default function MemoryGame({ onClose }: MemoryGameProps) {
     setSelected([]);
     setRunning(true);
     setShowCongrats(false);
-    // hasWon wird beim Reset NICHT zurückgesetzt, damit das Badge erhalten bleibt
   }, [resetCount]);
+
+  // NEU: Jedes Frame das Overlay vor die Kamera schieben
+  useFrame(() => {
+    if (showCongrats && congratsRef.current) {
+      const offset = new THREE.Vector3(0, 0, -2.5); 
+      offset.applyQuaternion(camera.quaternion);
+      congratsRef.current.position.copy(camera.position).add(offset);
+      congratsRef.current.lookAt(camera.position);
+    }
+  });
 
   const flipCard = (id: number) => {
     setCards(prev => {
@@ -132,7 +147,7 @@ export default function MemoryGame({ onClose }: MemoryGameProps) {
     if (cards.every(c => c.isMatched)) {
       setRunning(false);
       setShowCongrats(true);
-      setHasWon(true); // ✅ Erfolg für das Badge markieren
+      setHasWon(true); 
       setTimeout(() => setShowCongrats(false), CONGRATS_DURATION_MS);
     }
   }, [cards]);
@@ -145,21 +160,19 @@ export default function MemoryGame({ onClose }: MemoryGameProps) {
 
   return (
     <group>
-      {/* ================= HUD ================= */}
+      {/* ================= HUD (Bleibt fest im Raum) ================= */}
       <group position={[0, 1.9, -4.2]}>
         <RoundedBox args={[2.6, 0.6, 0.06]} radius={0.06}>
           <meshStandardMaterial color="#bbd4f4" />
         </RoundedBox>
 
         <Text position={[-1.25, 0.2, 0.08]} fontSize={0.085} anchorX="left">
-          <meshBasicMaterial color="#285883" //depthTest={false} 
-          />
+          <meshBasicMaterial color="#285883" />
           Memory 🃏 Finde die passenden Paare!
         </Text>
 
         <Text position={[0.6, 0.2, 0.08]} fontSize={0.07}>
-          <meshBasicMaterial color="#285883" //depthTest={false} 
-          />
+          <meshBasicMaterial color="#285883" />
           ⏱ {formatTime(time)}
         </Text>
 
@@ -170,8 +183,7 @@ export default function MemoryGame({ onClose }: MemoryGameProps) {
             fontSize={0.055}
             anchorX="left"
           >
-            <meshBasicMaterial color="#244f73" //depthTest={false} 
-            />
+            <meshBasicMaterial color="#244f73" />
             {cat}: {val}
           </Text>
         ))}
@@ -179,13 +191,11 @@ export default function MemoryGame({ onClose }: MemoryGameProps) {
         <RoundedBox args={[0.9, 0.18, 0.05]} radius={0.04} position={[0, -0.24, 0.08]} onPointerDown={newGame}>
           <meshStandardMaterial color="#285883" />
           <Text fontSize={0.065} anchorX="center" anchorY="middle" position={[0, 0, 0.03]}>
-            <meshBasicMaterial color="#ffffff" //depthTest={false} 
-            />
+            <meshBasicMaterial color="#ffffff" />
             Neues Spiel
           </Text>
         </RoundedBox>
 
-        {/* ✅ X-BUTTON ÜBERGIBT ERFOLG */}
         {onClose && (
           <RoundedBox
             args={[0.14, 0.14, 0.03]}
@@ -195,17 +205,17 @@ export default function MemoryGame({ onClose }: MemoryGameProps) {
           >
             <meshStandardMaterial color="#d9534f" />
             <Text fontSize={0.085} anchorX="center" anchorY="middle">
-              <meshBasicMaterial color="#ffffff" depthTest={false} 
-              />
+              <meshBasicMaterial color="#ffffff" depthTest={false} />
               ✕
             </Text>
           </RoundedBox>
         )}
       </group>
 
-      {/* 🎉 CONGRATS OVERLAY */}
+      {/* 🎉 CONGRATS OVERLAY (Head-Locked: Folgt deinem Blick) */}
       {showCongrats && (
-        <group position={[0, 1.2, -2]}>
+        <group ref={congratsRef}>
+          <pointLight position={[0, 2, 2]} intensity={0.5} />
           <RoundedBox args={[1.8, 0.8, 0.05]} radius={0.06}>
             <meshStandardMaterial color="#ffffff" />
           </RoundedBox>
@@ -219,7 +229,7 @@ export default function MemoryGame({ onClose }: MemoryGameProps) {
         </group>
       )}
 
-      {/* ================= CARDS ================= */}
+      {/* ================= CARDS (Bleiben fest im Raum) ================= */}
       {cards.map(card => {
         const data = cardDataMap.get(card.id)!;
         return (

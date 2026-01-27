@@ -2,7 +2,7 @@ export const quizLocations = [
   {
     id: "kitchen",
     name: "Future Food Kitchen",
-    coords: { lat: 52.52667795846103, lon: 13.36035865876291 },
+    coords: { lat: 52.526676774378224, lon: 13.360361329315147 },
     radius: 100, // richtige coords: { lat: 52.45554951375966, lon: 13.52518413859404 }, 
 
     features: {
@@ -22,13 +22,8 @@ export const quizLocations = [
     id: "algen",
     name: "Gebäude A – Algenlabor",
     //coords: { lat: 52.540636660690225, lon: 13.391817612557453 },
-<<<<<<< HEAD
     coords: { lat: 52.544440636660690225, lon: 13.3918176125574533 },
-  //52.52667795846103, 13.36035865876291 zuhause
-=======
-    coords: { lat: 52.451405444313316, lon: 13.477409860925572 },
-  //52.52668739066162, 13.36037664808089 zuhause
->>>>>>> 4577f848db46ae6dd0427717c9b120a759e8564f
+  //52.526676774378224, 13.360361329315147 zuhause
     radius: 100, // lat: 52.540636660690225, lon: 13.391817612557453 
 
     features: {

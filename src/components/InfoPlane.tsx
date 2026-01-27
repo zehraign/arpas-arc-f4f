@@ -11,7 +11,7 @@ const INFO_PLANE_OFFSET_X = IMAGE_WIDTH + 0.2; // Abstand Info-Plane
 const GALLERY_SCALE = 1.25;  
 
 // --> Sphärische Bild-Positionen  
-const IMAGE_RADIUS = 4.2;        
+const IMAGE_RADIUS = 4.1;        
 const IMAGE_BASE_Y = 1.15;       
 const IMAGE_Y_VARIATION = 0.35;  
 
@@ -78,26 +78,26 @@ const infoPlaneColors: Record<string, string> = {
 const infoContent: Record<string, { title: string; content: string[] }[]> = {
   algen: [
     { title: "Warum Algen?", content: ["Wachsen sehr schnell", "Brauchen kaum Ackerland, Süßwasser oder Dünger", "Schonend für Umwelt und Klima"] },
-    { title: "Wichtige Inhaltsstoffe", content: ["Enthalten Eiweiß, Vitamine und Omega-3-Fettsäuren", "Liefern wichtige Nährstoffe für den Menschen"] },
     { title: "Wachstumsbedingungen", content: ["Benötigen Licht, Wasser und Nährstoffe", "Können kontrolliert gezüchtet werden"] },
+    { title: "Wichtige Inhaltsstoffe", content: ["Enthalten Eiweiß, Vitamine und Omega-3-Fettsäuren", "Liefern wichtige Nährstoffe für den Menschen"] },
     { title: "Indoor-Kultivierung", content: ["Unabhängig von Wetter und Jahreszeiten", "Kein Ackerland notwendig", "Produktion fast überall möglich"] },
     { title: "Grünalgen im Fokus", content: ["Ca. 25 % Eiweiß", "Gute pflanzliche Proteinquelle"] },
     { title: "Besondere Vitamine", content: ["Enthalten Beta-Carotin", "Vorstufe von Vitamin A", "Wichtig für Augen, Haut und Immunsystem"] },
   ],
   grillen: [
     { title: "Warum Grillen?", content: ["Wachsen schnell", "Brauchen wenig Platz und Ressourcen", "Schonend für Umwelt und Klima"] },
-    { title: "Proteinreich", content: ["Enthalten viel Eiweiß", "Gute pflanzliche Alternative zu Fleisch"] },
     { title: "Stadtfreundlich", content: ["Brauchen nur wenig Platz und Futter", "Einfach in städtischen Umgebungen züchtbar"] },
+    { title: "Proteinreich", content: ["Enthalten viel Eiweiß", "Gute pflanzliche Alternative zu Fleisch"] },
     { title: "Klimafreundlich", content: ["Stoßen deutlich weniger CO₂ aus als Rinder oder Schweine", "Effiziente Nahrungsquelle"] },
     { title: "Proteingehalt", content: ["Ca. 60 % Eiweiß", "Hohe Proteinqualität für menschliche Ernährung"] },
   ],
   kitchen: [
-    { title: "Was ist Future Food?", content: ["Nachhaltig erzeugte Lebensmittel der Zukunft", "Neue Nahrungsquellen für wachsende Weltbevölkerung"] },
+    { title: "Was ist Future Food?", content: ["Nachhaltig erzeugte Lebensmittel der Zukunft", "Neue Nahrungsquellen für wachsende Weltbevölkerung", " Neue und alternative Nahrungsquellen: Makroalgen, Quallen, Salzpflanzen, Grillen"] },
     { title: "Warum Insekten?", content: ["Proteinreich", "Umweltfreundlich und nachhaltig züchtbar", "Alternative zu Fleisch"] },
     { title: "Ziele nachhaltiger Ernährung", content: ["Gesunde Lebensmittel für alle Menschen", "Ressourcenschonend produzieren", "Weniger Lebensmittelverschwendung"] },
     { title: "Produktion in Städten", content: ["Kürzere Transportwege", "Weniger Energie- und Ressourceneinsatz", "Effiziente Nutzung urbaner Räume"] },
+    { title: "Queller -Pesto Zutaten:", content: ["- 100 g Queller", "- 80 g Cashewbruch", " - 100 g Parmesan", " - Olivenöl (nach Bedarf)", " - Salz & Pfeffer (nach Geschmack)", " - Frischer Zitronensaft"] },  
     { title: "Innerhalb planetarer Grenzen", content: ["Umwelt wird geschont", "Ressourcen werden nicht überlastet", "Produktion bleibt nachhaltig"] },
-    { title: "Neue und alternative Nahrungsquellen", content: ["Makroalgen, Quallen, Salzpflanzen, Grillen"] },
   ],
   salzpflanzen: [
     { title: "Was sind Salzpflanzen?", content: ["Halophyten: Pflanzen, die auf salzigen Böden wachsen können", "Anpassungsfähig an salzhaltige Umgebungen"] },
@@ -112,7 +112,7 @@ const infoContent: Record<string, { title: string; content: string[] }[]> = {
     { title: "Rolle der Mikroalgen", content: ["Liefern Energie über Photosynthese", "Unterstützen das Wachstum der Quallen"] },
     { title: "Lebensraum und Bedingungen", content: ["Flache Gewässer mit Mikroalgen", "Ideal für Indoor-Kultivierung"] },
     { title: "Symbiose", content: ["Zusammenleben mit Mikroalgen", "Fördert effizientes Wachstum"] },
-    { title: "Symbiose", content: ["Zusammenleben mit Mikroalgen", "Fördert effizientes Wachstum"] },
+    { title: "Bedeutung für die Zukunft", content: ["Ressourcenschonende Lebensmittelproduktion", "Alternative zu herkömmlichen tierischen Proteinquellen"] },
   ],
 };
 
@@ -182,11 +182,11 @@ const pulsatingImages: Record<string, number[]> = {
 //  Bildunterschriften pro Standort 
 
 const locationCaptions: Record<string, string[]> = {
-  quallen: ["AUTOR", "AUTOR", "AUTOR", "AUTOR", "AUTOR", "AUTOR", "AUTOR", "AUTOR", "AUTOR"],
-  salzpflanzen: ["AUTOR", "AUTOR", "AUTOR", "AUTOR", "AUTOR", "AUTOR"], //Queller im Frühjahr Ulrike Graeber https://www.badoldesloe.de/index.php?object=adr|2965.1229.1||1|&PVID=352&previewMode&gipsy=1&viewFrame=true
-  algen: ["AUTOR", "AUTOR", "AUTOR", "AUTOR", "AUTOR", "AUTOR", "AUTOR", "AUTOR"],
-  kitchen: ["AUTOR", "AUTOR", "AUTOR", "AUTOR", "AUTOR", "AUTOR", "AUTOR", "AUTOR"],
-  grillen: ["AUTOR", "AUTOR", "AUTOR", "AUTOR", "AUTOR"], // Hausgrille Martin Rücker https://www.fr.de/wirtschaft/guten-appetit-ob-mit-oder-ohne-grille-92046244.html 
+  quallen: [" Mangrovenqualle, Raimond Spekking", " Mangrovenqualle, iStock", " Mangrovenqualle, Sina Schuldt", " Mangrovenquallen, Ali Ghandtschi", "Mangrovenquallen,  Ali Ghandtschi", "Mangrovenquallen, Ali Ghandtschi",],
+  salzpflanzen: ["Queller, M.Fitzner", "Halophyten, S.Baldermann", " Halophyten im Gewaechshaus, S.Baldermann", "Halophyten im Gewaechshaus, S.Baldermann", "Queller im Frühjahr, Ulrike Graeber",], 
+  algen: ["Rinnensystem, S.Pophal", "Algen Tonneninhalt, Algen, S.Pophal", " Algen Tanks, S.Pophal", "Probeentnahme Algen, S.Pophal", "Probeentnahme Algen, S.POphal", "Erster Tag Algen kultivierung, f4f ",  ],
+  kitchen: ["Algenkekse, Jette Berend ", "Grillen- Pancakes, Jette Berend ", "Salzpflanzen (Queller) Dip mit veganem Lax, Jette Berend", "Quallen-Avocado-Salat, Jette Berend", " Vollkornspaghetti Queller Pesto, Julia Vogt", " Dulse, Julia Vogt",],
+  grillen: ["Grille, f4f ", "Grillen, Jonah Duderstädt", "Grille, Jonah Duderstädt", "Insektenkultivierung im Detail , Jonah Duderstädt", "Hausgrillen,  Martin Rücker "], 
 };
 
 

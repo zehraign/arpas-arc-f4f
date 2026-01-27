@@ -11,8 +11,8 @@ const INFO_PLANE_OFFSET_X = IMAGE_WIDTH + 0.2; // Abstand Info-Plane
 const GALLERY_SCALE = 1.25;  
 
 // --> Sphärische Bild-Positionen  
-const IMAGE_RADIUS = 4.1;        
-const IMAGE_BASE_Y = 1.15;       
+const IMAGE_RADIUS = 3.5;        
+const IMAGE_BASE_Y = 1;       
 const IMAGE_Y_VARIATION = 0.35;  
 
 const getSphericalImagePositions = (count: number) =>
@@ -74,7 +74,6 @@ const infoPlaneColors: Record<string, string> = {
 };
 
 //   INFO CONTENT
-
 const infoContent: Record<string, { title: string; content: string[] }[]> = {
   algen: [
     { title: "Warum Algen?", content: ["Wachsen sehr schnell", "Brauchen kaum Ackerland, Süßwasser oder Dünger", "Schonend für Umwelt und Klima"] },
@@ -96,7 +95,7 @@ const infoContent: Record<string, { title: string; content: string[] }[]> = {
     { title: "Warum Insekten?", content: ["Proteinreich", "Umweltfreundlich und nachhaltig züchtbar", "Alternative zu Fleisch"] },
     { title: "Ziele nachhaltiger Ernährung", content: ["Gesunde Lebensmittel für alle Menschen", "Ressourcenschonend produzieren", "Weniger Lebensmittelverschwendung"] },
     { title: "Produktion in Städten", content: ["Kürzere Transportwege", "Weniger Energie- und Ressourceneinsatz", "Effiziente Nutzung urbaner Räume"] },
-    { title: "Queller -Pesto Zutaten:", content: ["- 100 g Queller", "- 80 g Cashewbruch", " - 100 g Parmesan", " - Olivenöl (nach Bedarf)", " - Salz & Pfeffer (nach Geschmack)", " - Frischer Zitronensaft"] },  
+    { title: "Queller-Pesto Zutaten:", content: ["100 g Queller", "80 g Cashewbruch", " 100 g Parmesan", " Olivenöl (nach Bedarf)", " Salz & Pfeffer (nach Geschmack)", " Frischer Zitronensaft"] },  
     { title: "Innerhalb planetarer Grenzen", content: ["Umwelt wird geschont", "Ressourcen werden nicht überlastet", "Produktion bleibt nachhaltig"] },
   ],
   salzpflanzen: [
@@ -117,7 +116,6 @@ const infoContent: Record<string, { title: string; content: string[] }[]> = {
 };
 
 //   BUTTON TEXTUREN
-
 const buttonTextures: Record<string, string> = {
   quallen: "/static/textures/qualli.png",
   grillen: "/static/textures/grille.png",
@@ -127,7 +125,6 @@ const buttonTextures: Record<string, string> = {
 };
 
 // BILDER PRO STANDORT
-
 const locationImages: Record<string, string[]> = {
   quallen: [
     "/static/images/Qualle/Qualle1.png",
@@ -169,9 +166,7 @@ const locationImages: Record<string, string[]> = {
   ],
 };
 
-
 //   Pulsierende Bilder pro Standort 
-
 const pulsatingImages: Record<string, number[]> = {
   quallen: [0,1, 2, 3, 4,5  ],
   algen: [0,1,2, 3,4, 5, ],
@@ -179,8 +174,8 @@ const pulsatingImages: Record<string, number[]> = {
   kitchen: [0,1,2, 3, 4,5],
   salzpflanzen: [0, 1,2, 3,4 ],
 };
-//  Bildunterschriften pro Standort 
 
+//  Bildunterschriften pro Standort 
 const locationCaptions: Record<string, string[]> = {
   quallen: [" Mangrovenqualle, Raimond Spekking", " Mangrovenqualle, iStock", " Mangrovenqualle, Sina Schuldt", " Mangrovenquallen, Ali Ghandtschi", "Mangrovenquallen,  Ali Ghandtschi", "Mangrovenquallen, Ali Ghandtschi",],
   salzpflanzen: ["Queller, M.Fitzner", "Halophyten, S.Baldermann", " Halophyten im Gewaechshaus, S.Baldermann", "Halophyten im Gewaechshaus, S.Baldermann", "Queller im Frühjahr, Ulrike Graeber",], 
@@ -189,10 +184,7 @@ const locationCaptions: Record<string, string[]> = {
   grillen: ["Grille, f4f ", "Grillen, Jonah Duderstädt", "Grille, Jonah Duderstädt", "Insektenkultivierung im Detail , Jonah Duderstädt", "Hausgrillen,  Martin Rücker "], 
 };
 
-
-
 //   Bild-Button (Billboard)
-
 function ImageButton({ texturePath, onClick }: { texturePath: string; onClick: () => void }) {
   const ref = useRef<THREE.Mesh>(null);
   const { camera } = useThree();
@@ -218,7 +210,6 @@ function ImageButton({ texturePath, onClick }: { texturePath: string; onClick: (
 }
 
 //  InfoPlanes Component (feste Weltpositionen)
-
 interface InfoPlanesProps {
   locationId: string;
   showInfo: boolean;
@@ -252,7 +243,7 @@ useFrame(() => {
 
   introPlaneRef.current.lookAt(
     camera.position.x,
-    introPlaneRef.current.position.y, // 👈 nur horizontal drehen
+    introPlaneRef.current.position.y, // nur horizontal drehen
     camera.position.z
   );
 });
@@ -283,7 +274,7 @@ useFrame(() => {
   if (showInfo && textures.length !== images.length) {
     return (
       <group>
-        <Text fontSize={0.3} color="white" anchorX="center" anchorY="middle">
+        <Text fontSize={0.45} color="white" anchorX="center" anchorY="middle">
           Bilder werden geladen...
         </Text>
       </group>
@@ -303,7 +294,7 @@ useFrame(() => {
 
       {/* ================= InfoGalerie ================= */}
       {showInfo && (
-  <group position={[0, -0.4, -1]} scale={GALLERY_SCALE}>
+  <group position={[0, -0.4, 0]} scale={GALLERY_SCALE}>
           {/* Intro Plane zur Kamera */}
           <group
   ref={introPlaneRef}
@@ -416,22 +407,32 @@ useFrame(() => {
                         />
                       </RoundedBox>
 
-                      <Text
-                        position={[0, 0.32, 0.04]}
-                        fontSize={0.065}
-                        color="white"
-                        anchorX="center"
-                        anchorY="top"
-                        material-toneMapped={false}
-                        maxWidth={1.2}
-                        textAlign="center"
-                      >
-                        {planeInfo.title}
-                      </Text>
+                      
+
+                      <group position={[0, 0.36, 0.04]}>  
+  <Text
+    fontSize={0.08}
+    color="white"
+    anchorX="center"
+    anchorY="top"
+    material-toneMapped={false}
+    maxWidth={1.2}
+    textAlign="center"
+  >
+    {planeInfo.title}
+  </Text>
+
+  {/* Unterstreichung */}
+  <mesh position={[0, -0.11, 0]}>
+    <planeGeometry args={[1.1, 0.01]} /> 
+    <meshBasicMaterial color="white" toneMapped={false} />
+  </mesh>
+</group>
+                      
 
                       <Text
-                        position={[0, -0.05, 0.04]}
-                        fontSize={0.048}
+                        position={[0, 0.1, 0.04]}
+                        fontSize={0.06} // content
                         color="white"
                         anchorX="center"
                         anchorY="top"

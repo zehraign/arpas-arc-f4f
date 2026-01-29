@@ -2,8 +2,9 @@ export const quizLocations = [
   {
     id: "kitchen",
     name: "Future Food Kitchen",
-    coords: { lat: 52.45554951375966, lon: 13.52518413859404 },
-    radius: 10, // richtige coords: { lat: 52.45554951375966, lon: 13.52518413859404 }, 
+   // coords: { lat: 52.455125636924116,  lon: 13.525380341575566}, 
+   coords: { lat: 52.540636660690225, lon: 13.391817612557453 },
+   radius: 40,   
 
     features: {
       quiz: {
@@ -13,7 +14,8 @@ export const quizLocations = [
 
     button: {
       label: "Future-Food-Quiz 🍽️",
-      color: "#149085",
+      color: "#086159",
+     
     },
     infoId: "kitchen", // InfoPlanes
   },
@@ -22,10 +24,10 @@ export const quizLocations = [
     id: "algen",
     name: "Gebäude A – Algenlabor",
     //coords: { lat: 52.540636660690225, lon: 13.391817612557453 },
-    coords: { lat: 52.526675994617136, lon: 13.360365790617525 },
+    coords: { lat: 54.455125636924116,  lon: 13.525380341575566}, 
   //lat: 52.526675994617136, lon: 13.360365790617525 zuhause 
   // zuhause 2 lat: 52.526589996755135, lon: 13.360429487398113
-    radius: 50, 
+    radius: 15, 
 
     features: {
       quiz: {
@@ -38,7 +40,7 @@ export const quizLocations = [
 
     button: {
       label: "Algen-Quiz 🌱",
-      color: "#3c8c40" 
+      color: "#29732d" 
     },
     infoId: "algen", // InfoPlane
   },
@@ -46,10 +48,10 @@ export const quizLocations = [
   {
     id: "quallen",
     name: "Bibliothek – Quallenlabor",
-   //s coords: { lat: 52.45510590524545, lon: 13.525163019961198 },
-    coords: { lat: 52.45510590524545, lon: 13.525163019961198  },
-  
-    radius: 100, 
+    coords: { lat: 52.455111227730356, lon: 13.525546761324394  },
+  //  coords: { lat: 52.45510590524545, lon: 13.525163019961198  },
+
+    radius: 30, 
 
     features: {
       quiz: {
@@ -72,8 +74,9 @@ export const quizLocations = [
     id: "salzpflanzen",
     name: "Gebäude C – Salzpflanzenlabor",
    
-     coords: { lat: 52.45639953688056, lon: 13.525978466276289 },
-    radius: 50,
+     coords: { lat: 52.455111227730356, lon:13.525546761324394  },   
+
+    radius: 10,
 
     features: {
       quiz: {

@@ -32,7 +32,10 @@ import { SceneData } from "./types/objectData";
 import { TopicData } from "./types/topicData";
 import { ContentTypesData } from "./types/contentTypesData";
 
-const store = createXRStore({ controller: false });
+const store = createXRStore({
+  controller: false,
+  optionalFeatures: ["hit-test", "local-floor"],
+});
 const quizzes = (import.meta as any).glob("./data/*.json");
 
 interface AppProps {
@@ -151,6 +154,12 @@ export default function App({ content_types, scene, topic }: AppProps) {
   const [showMemory, setShowMemory] = useState(false);
   const [canStartQuiz, setCanStartQuiz] = useState(false);
   const isOverlayHidden = showInfo || showMemory || showQuiz || showPuzzle;
+
+  useEffect(() => {
+    if (showQuiz || showPuzzle || showMemory) {
+      setShowInfo(false);
+    }
+  }, [showQuiz, showPuzzle, showMemory]);
 
   /* XR Overlay Sync */
   const [domOverlayRoot, setDomOverlayRoot] = useState<Element | null>(null);

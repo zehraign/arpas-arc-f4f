@@ -272,13 +272,36 @@ const ModelComponent = ({ sceneObjectId, modelUrl, objectRef, position, rotation
             const mesh = child as unknown as THREE.Mesh;
             if ((mesh as any).isMesh) {
                 mesh.userData = { ...mesh.userData, sceneObjectId };
+                mesh.frustumCulled = false;
+                const material = mesh.material as THREE.Material | THREE.Material[] | undefined;
+                if (Array.isArray(material)) {
+                    material.forEach((m) => {
+                        m.side = THREE.DoubleSide;
+                        m.needsUpdate = true;
+                    });
+                } else if (material) {
+                    material.side = THREE.DoubleSide;
+                    material.needsUpdate = true;
+                }
             }
         });
     }, [clonedScene, sceneObjectId]);
 
-    const boundingBox = new THREE.Box3().setFromObject(clonedScene); // Compute bounding box
-    const size = boundingBox.getSize(new THREE.Vector3(1, 1, 1));
-    const center = boundingBox.getCenter(new THREE.Vector3());
+    const { size, min } = React.useMemo(() => {
+        const boundingBox = new THREE.Box3().setFromObject(clonedScene);
+        return {
+            size: boundingBox.getSize(new THREE.Vector3(1, 1, 1)),
+            min: boundingBox.min.clone(),
+        };
+    }, [clonedScene]);
+
+    const modelOffset = React.useMemo(() => {
+        return new THREE.Vector3(0, -min.y, 0);
+    }, [min.y]);
+
+    const scaledSize = React.useMemo(() => {
+        return new THREE.Vector3(size.x * scale.x, size.y * scale.y, size.z * scale.z);
+    }, [size.x, size.y, size.z, scale.x, scale.y, scale.z]);
 
     {/* Invisible object for click interaction */ }
     //            <mesh position={center} userData={{ sceneObjectId }}>
@@ -287,26 +310,25 @@ const ModelComponent = ({ sceneObjectId, modelUrl, objectRef, position, rotation
     //            </mesh>
     return (
         <group
-            scale={scale.toArray()}>
-            <group
-                ref={objectRef}
-                position={position.toArray()}
-                rotation={rotation.toArray()}
-                // scale={scale.toArray()}
-                castShadow
-                receiveShadow
-            >
+            ref={objectRef}
+            position={position.toArray()}
+            rotation={rotation.toArray()}
+            castShadow
+            receiveShadow
+        >
+            <group position={modelOffset.toArray()} scale={scale.toArray()}>
                 <primitive object={clonedScene} />
                 <meshStandardMaterial color="white" transparent={false} opacity={1} depthWrite={true} />
             </group>
             <RoundedPlane
-                position={new Position(position.x, center.y - size.y / 2, position.z)}
-                rotation={new Rotation(0, rotation.y, 0)}
+                position={new Position(0, 0, 0)}
+                rotation={new Rotation(0, 0, 0)}
                 radius={2}
-                width={size.x * 1.2}
-                height={size.z * 1.2}
+                width={Math.max(0.1, scaledSize.x * 1.2)}
+                height={Math.max(0.1, scaledSize.z * 1.2)}
                 color="black"
                 opacity={.15}
+                depthWrite={false}
             ></RoundedPlane>
         </group>
     );

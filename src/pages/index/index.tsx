@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useCallback, useState, type MouseEvent } from "react";
+import { useEffect, useLayoutEffect, useMemo, useCallback, useState, useRef, type MouseEvent } from "react";
 import { useXRInputSourceEvent, useXRStore, XRDomOverlay } from "@react-three/xr";
 import * as THREE from "three";
 import { Header, Footer, DirectionalArrow, HelpMenu, ObjectDescription } from "../../components-ui";
@@ -55,7 +55,10 @@ const IndexPage = ({
 
     const dialogContent: CharacterDialogMap = characterDialogs;
 
-    const getPosition = useLocationStore((state) => state.getPosition);
+    const { getPosition, origin } = useLocationStore((state) => ({
+        getPosition: state.getPosition,
+        origin: state.origin,
+    }));
     const [dialogKey, setDialogKey] = useState("default");
     const [characterLines, setCharacterLines] = useState(dialogContent.default?.lines ?? []);
     const [showCharacterOverlay, setShowCharacterOverlay] = useState(true);
@@ -76,6 +79,10 @@ const IndexPage = ({
     const [compassPosition, setCompassPosition] = useState(camera?.position?.clone() ?? new THREE.Vector3(0, 0, 0));
     const [worldRotation] = useWorldRotation(camera);
     const [fixedWorldRotation, setFixedWorldRotation] = useState<number | null>(null);
+    const positionFixedRef = useRef(false);
+    const rotationFixedRef = useRef(false);
+    const compassReadyRef = useRef(false);
+    // no ground hit-test offset; keep GPS placement stable
 
     // Memoized camera position for ObjectScene
     const cameraPositionMemo = useMemo(() => camera?.position?.clone() ?? new THREE.Vector3(0, 0, 0), [worldPosition]);
@@ -88,11 +95,29 @@ const IndexPage = ({
         setSelectedVariants((prev) => ({ ...prev, [objectId]: variantId }));
     }, []);
 
-   /*  useEffect(() => {
-        if (fixedWorldPosition || !worldPosition) return;
-        if (worldPosition.length() < 0.1) return; // ignoriert den 0/0/0-Fallback
-        setFixedWorldPosition(worldPosition);
-    }, [worldPosition, fixedWorldPosition]); */
+    useEffect(() => {
+        if (messages.some((m) => m.id === "compass_initialized")) {
+            compassReadyRef.current = true;
+        }
+    }, [messages]);
+
+    useEffect(() => {
+        if (positionFixedRef.current) return;
+        if (!origin || !worldPosition) return;
+        if (worldPosition.length() < 0.1) return;
+        setFixedWorldPosition(worldPosition.clone());
+        positionFixedRef.current = true;
+    }, [origin, worldPosition]);
+
+    useEffect(() => {
+        if (rotationFixedRef.current) return;
+        if (!compassReadyRef.current) return;
+        if (!Number.isFinite(worldRotation)) return;
+        setFixedWorldRotation(worldRotation);
+        rotationFixedRef.current = true;
+    }, [worldRotation, messages]);
+
+    // ground hit-test removed; keep original placement behavior
 
     const closestSceneObject = useMemo(() => {
         if (!scene.objects?.length) return null;
@@ -273,13 +298,17 @@ const IndexPage = ({
                                     className={`compass-fix-btn${fixedWorldPosition && fixedWorldRotation ? " active" : ""}`}
                                     onMouseDown={(e) => e.preventDefault()}
                                     onClick={() => {
-                                        if (fixedWorldPosition && fixedWorldRotation) {
+                                        if (fixedWorldPosition && fixedWorldRotation !== null) {
                                             setFixedWorldPosition(null);
                                             setFixedWorldRotation(null);
                                         } else {
-                                            setFixedWorldPosition(worldPosition);
-                                            setFixedWorldRotation(worldRotation);
+                                            setFixedWorldPosition(worldPosition.clone());
+                                            if (Number.isFinite(worldRotation)) {
+                                                setFixedWorldRotation(worldRotation);
+                                            }
                                         }
+                                        positionFixedRef.current = true;
+                                        rotationFixedRef.current = true;
                                     }}
                                 >
                                     { }
@@ -333,18 +362,21 @@ const IndexPage = ({
             </XRDomOverlay>
 
             {/* 3D Scene */}
-            {!overlayHidden && scene && (
+            {scene && (
                 <>
-                    <ambientLight intensity={5} />
-                    <directionalLight intensity={10} />
-                    <Compass3D headingInRad={worldRotation} cameraPosition={compassPosition} />
-
+                    {!overlayHidden && (
+                        <>
+                            <ambientLight intensity={5} />
+                            <directionalLight intensity={10} />
+                            <Compass3D headingInRad={worldRotation} cameraPosition={compassPosition} />
+                        </>
+                    )}
                     <ObjectScene
                         selectedVariants={selectedVariants}
                         minioClientData={minioClientData}
                         worldRotation={fixedWorldRotation ?? worldRotation}
-                        worldPosition={fixedWorldPosition ?? worldPosition}
                         cameraPosition={cameraPositionMemo}
+                        visible={!overlayHidden}
                     />
                 </>
             )}

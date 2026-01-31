@@ -11,16 +11,16 @@ interface ObjectSceneProps {
     selectedVariants: Record<number, number>;
     minioClientData: MinioData | null;
     worldRotation: number;
-    worldPosition: Position;
     cameraPosition: THREE.Vector3;
+    visible?: boolean;
 }
 
 const ObjectScene: React.FC<ObjectSceneProps> = ({
     selectedVariants,
     minioClientData,
     worldRotation,
-    worldPosition,
-    cameraPosition
+    cameraPosition,
+    visible = true
 }) => {
     const { scene } = useSceneStore();
     const getPosition = useLocationStore(state => state.getPosition);
@@ -41,8 +41,11 @@ const ObjectScene: React.FC<ObjectSceneProps> = ({
                 return null;
             }
 
-            const position = getObjectPosition(sceneObject, variant, getPosition)
-                .substractedPosition(worldPosition);
+            const basePosition = getObjectPosition(sceneObject, variant, getPosition);
+            const offsetPosition = variant.offset_position
+                ? new Position(variant.offset_position as [number, number, number])
+                : new Position();
+            const position = basePosition.addedPosition(offsetPosition);
             // .substractedPosition(cameraPosition);
 
             return (
@@ -78,14 +81,14 @@ const ObjectScene: React.FC<ObjectSceneProps> = ({
                 </mesh>
             );
         });
-    }, [scene.objects, minioClientData, selectedVariants, worldPosition, worldRotation]);
+    }, [scene.objects, minioClientData, selectedVariants, worldRotation]);
 
     if (!scene) {
         console.warn("Scene data is null or undefined.");
         return null;
     }
 
-    return <group rotation={[0, -worldRotation - Math.PI / 2, 0]}>
+    return <group rotation={[0, -worldRotation - Math.PI / 2, 0]} visible={visible}>
         {renderedObjects}
     </group>;
 };

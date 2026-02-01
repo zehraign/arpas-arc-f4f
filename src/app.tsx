@@ -92,7 +92,22 @@ function LocationInteractionButtons({
   setShowPuzzle,
   setShowMemory,
 }: LocationInteractionButtonsProps) {
+  const { camera } = useThree();
   const { isOpen } = useNavigationOverlay();
+  
+  // State für die Welt-Position der Buttons
+  const [buttonPos, setButtonPos] = useState<[number, number, number]>([0, 1, -1.4]);
+
+  // Sobald eine neue Location aktiv wird, berechnen wir die Position NEU
+  // direkt vor der aktuellen Kameraposition des Nutzers
+  useEffect(() => {
+    if (activeLocation) {
+      const offset = new THREE.Vector3(0, 0, -1.5); // 1.5 Meter vor die Kamera
+      offset.applyQuaternion(camera.quaternion);    // In Blickrichtung drehen
+      const newPos = camera.position.clone().add(offset);
+      setButtonPos([newPos.x, newPos.y, newPos.z]);
+    }
+  }, [activeLocation?.id, camera]); // Triggert nur bei neuem Standort
 
   const handleStartInteraction = (type: "quiz" | "puzzle" | "memory") => {
     if (isOpen) return;
@@ -101,38 +116,40 @@ function LocationInteractionButtons({
     if (type === "memory") setShowMemory(true);
   };
 
+  // Wenn kein Standort da ist oder ein Spiel läuft -> nichts anzeigen
   if (!activeLocation || showQuiz || showPuzzle || showMemory || showInfo) return null;
 
   return (
-    <group position={[0, 1, -1.4]}>
+    <Billboard position={buttonPos}>
       {canStartQuiz && (
-        <group position={[-0.6, 0.2, -1]}>
+        <group position={[-0.6, 0.2, 0]}>
           <RoundedBox args={[0.9, 0.32, 0.08]} radius={0.06} onPointerDown={() => handleStartInteraction("quiz")}>
-            <meshStandardMaterial color={activeLocation.button?.color} />
+            <meshStandardMaterial color={activeLocation.button?.color || "#ff0000"} />
           </RoundedBox>
-          <Text position={[0, 0, 0.06]} fontSize={0.065} color="white">{activeLocation.button?.label}</Text>
+          <Text position={[0, 0, 0.06]} fontSize={0.065} color="white">
+            {activeLocation.button?.label || "Start Quiz"}
+          </Text>
         </group>
       )}
 
       {activeLocation.features?.puzzle && (
-        <group position={[0.6, 0.2, -1]}>
+        <group position={[0.6, 0.2, 0]}>
           <RoundedBox args={[0.9, 0.32, 0.08]} radius={0.06} onPointerDown={() => handleStartInteraction("puzzle")}>
-            <meshStandardMaterial color={activeLocation.button?.color} />
+            <meshStandardMaterial color={activeLocation.button?.color || "#00ff00"} />
           </RoundedBox>
           <Text position={[0, 0, 0.06]} fontSize={0.065} color="white">Puzzle 🧩</Text>
         </group>
       )}
 
-      {/* Memory Button (Aktiviert wenn Feature im Location-Objekt oder ID Kitchen) */}
       {(activeLocation.features?.memory || activeLocation.id === "kitchen") && (
-        <group position={[0.6, 0.2, -1]}>
+        <group position={[0.6, -0.2, 0]}>
           <RoundedBox args={[1.1, 0.32, 0.08]} radius={0.06} onPointerDown={() => handleStartInteraction("memory")}>
             <meshStandardMaterial color="#149085" />
           </RoundedBox>
           <Text position={[0, 0, 0.06]} fontSize={0.065} color="white">Memory Spiel 🃏</Text>
         </group>
       )}
-    </group>
+    </Billboard>
   );
 }
 
@@ -159,6 +176,24 @@ export default function App({ content_types, scene, topic }: AppProps) {
 
   /* Badge System */
   const [collectedBadges, setCollectedBadges] = useState<string[]>([]);
+  /* --- HIER EINSETZEN (Badge Persistence) --- */
+// Lädt gespeicherte Badges beim Starten der App
+useEffect(() => {
+  const saved = localStorage.getItem("collected_badges");
+  if (saved) {
+    const parsed = JSON.parse(saved);
+    setCollectedBadges(parsed);
+    setShownBadgePopups(parsed); // Verhindert doppelte Popups nach Reload
+  }
+}, []);
+
+// Speichert Badges jedes Mal, wenn ein neues dazu kommt
+useEffect(() => {
+  if (collectedBadges.length > 0) {
+    localStorage.setItem("collected_badges", JSON.stringify(collectedBadges));
+  }
+}, [collectedBadges]);
+/* ------------------------------------------- */
   const [newBadgeText, setNewBadgeText] = useState<string | null>(null);
   const [shownBadgePopups, setShownBadgePopups] = useState<string[]>([]);
   const badgeTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -198,19 +233,29 @@ export default function App({ content_types, scene, topic }: AppProps) {
   }, [inAR]);
 
   /* Geo-Location Logik */
-  useEffect(() => {
-    if (!inAR) return;
-  
-    setIsLoading(true); //  LOADING START
-  
-    navigator.geolocation.getCurrentPosition(async (pos) => {
-      const { latitude, longitude } = pos.coords;
-      const found = quizLocations.find((loc) => {
-        const dist = distanceInMeters(latitude, longitude, loc.coords.lat, loc.coords.lon);
-        return dist < loc.radius;
-      });
-      if (!found) return;
+  /* Geo-Location Logik (Reset-Schutz Version) */
+/* Geo-Location Logik (mit Reset-Fix) */
+useEffect(() => {
+  if (!inAR) return;
+
+  const watchId = navigator.geolocation.watchPosition(async (pos) => {
+    const { latitude, longitude } = pos.coords;
+    
+    const found = quizLocations.find((loc) => {
+      const dist = distanceInMeters(latitude, longitude, loc.coords.lat, loc.coords.lon);
+      return dist < loc.radius;
+    });
+
+    if (found && found.id !== activeLocation?.id) {
+      // --- WICHTIG: ALTEN ZUSTAND AUFRÄUMEN ---
+      setShowQuiz(false);
+      setShowPuzzle(false);
+      setShowMemory(false);
+      setShowInfo(false);
+      // ---------------------------------------
+
       setActiveLocation(found);
+
       if (found.features?.quiz) {
         const quizPath = `./data/${found.features.quiz.file}`;
         const loader = quizzes[quizPath];
@@ -219,12 +264,20 @@ export default function App({ content_types, scene, topic }: AppProps) {
           setQuizData(data.default);
           setCanStartQuiz(true);
         }
-      } else { setCanStartQuiz(false); }
-      setIsLoading(false); //  LOADING ENDE
+      } else {
+        setCanStartQuiz(false);
+        setQuizData(null); // Daten leeren
+      }
+    } 
+  }, (err) => console.error("GPS Fehler:", err), {
+    enableHighAccuracy: true,
+    maximumAge: 0,    // Erzwingt, dass kein alter Cache-Wert genutzt wird
+    timeout: 10000    // Wartet maximal 10 Sek auf ein Signal
+  });
 
+  return () => navigator.geolocation.clearWatch(watchId);
+}, [inAR, activeLocation?.id]); // Die ID im Dependency Array ist wichtig für den Vergleich
 
-    });
-  }, [inAR]);
 
   useEffect(() => {
     if (!xrSessionActive || !domOverlayRoot) { setDomOverlayReady(false); return; }

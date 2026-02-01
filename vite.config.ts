@@ -2,60 +2,76 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 
-export default defineConfig({
-    base: "/static/",
-    plugins: [react()],
-    server: {
-        host: "0.0.0.0",
-        port: 5173,
-        strictPort: true,
-        allowedHosts: true,
-        cors: {
-            origin: '*',
-            methods: ['GET', 'POST'],
-            allowedHeaders: ['Content-Type'],
-        },
-        headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Headers': '*'
-        }
+const server = {
+    host: "0.0.0.0",
+    port: 5173,
+    strictPort: true,
+    allowedHosts: true,
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"],
+        allowedHeaders: ["Content-Type"],
     },
-    build: {
-        lib: {
-            entry: path.resolve(__dirname, "src/index.ts"),
-            name: "ArpasArc",
-            formats: ["es", "umd", "cjs"],
-            fileName: (format) => `index.${format}.js`,
-        },
-        rollupOptions: {
-            external: [
-                "react",
-                "react-dom",
-                "three",
-                "@react-three/drei",
-                "@react-three/fiber",
-                "@react-three/xr",
-                "framer-motion",
-                "react-icons",
-                "react-router-dom",
-                "zustand",
-            ],
-            output: {
-                // Provide global variables to use in the UMD build
-                // for externalized deps
-                globals: {
-                    "react": "React",
-                    "react-dom": "ReactDOM",
-                    "three": "THREE",
-                    "@react-three/drei": "ReactThreeDrei",
-                    "@react-three/fiber": "ReactThreeFiber",
-                    "@react-three/xr": "ReactThreeXR",
-                    "framer-motion": "FramerMotion",
-                    "react-icons": "ReactIcons",
-                    "react-router-dom": "ReactRouterDOM",
-                    "zustand": "Zustand"
+    headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "*",
+    },
+};
+
+export default defineConfig(({ mode }) => {
+    if (mode === "site") {
+        return {
+            base: "./",
+            plugins: [react()],
+            server,
+            build: {
+                outDir: "dist",
+                emptyOutDir: true,
+            },
+        };
+    }
+
+    return {
+        base: "/static/",
+        plugins: [react()],
+        server,
+        build: {
+            lib: {
+                entry: path.resolve(__dirname, "src/index.ts"),
+                name: "ArpasArc",
+                formats: ["es", "umd", "cjs"],
+                fileName: (format) => `index.${format}.js`,
+            },
+            rollupOptions: {
+                external: [
+                    "react",
+                    "react-dom",
+                    "three",
+                    "@react-three/drei",
+                    "@react-three/fiber",
+                    "@react-three/xr",
+                    "framer-motion",
+                    "react-icons",
+                    "react-router-dom",
+                    "zustand",
+                ],
+                output: {
+                    // Provide global variables to use in the UMD build
+                    // for externalized deps
+                    globals: {
+                        react: "React",
+                        "react-dom": "ReactDOM",
+                        three: "THREE",
+                        "@react-three/drei": "ReactThreeDrei",
+                        "@react-three/fiber": "ReactThreeFiber",
+                        "@react-three/xr": "ReactThreeXR",
+                        "framer-motion": "FramerMotion",
+                        "react-icons": "ReactIcons",
+                        "react-router-dom": "ReactRouterDOM",
+                        zustand: "Zustand",
+                    },
                 },
             },
         },
-    },
+    };
 });

@@ -15,6 +15,7 @@
     "scripts": {
         "dev": "vite",
         "build": "vite build",
+        "build:site": "vite build --mode site",
         "preview": "vite preview",
         "deploy": "gh-pages -d dist",
         "wrapper": "serve dev-wrapper -l 4000",

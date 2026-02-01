@@ -29,6 +29,8 @@ const GALLERY_RADIUS_IMAGES = 2.6;
 const GALLERY_BASE_Y = 1.3;
 const GALLERY_Y_VARIATION = 0.35;
 
+const withBase = (path: string) => `${import.meta.env.BASE_URL}${path}`;
+
 // PRELOAD HOOK
 
 export function usePreloadTextures(urls: string[]) {
@@ -117,52 +119,52 @@ const infoContent: Record<string, { title: string; content: string[] }[]> = {
 
 //   BUTTON TEXTUREN
 const buttonTextures: Record<string, string> = {
-  quallen: "/static/textures/qualli.png",
-  grillen: "/static/textures/grille.png",
-  algen: "/static/textures/alge.png",
-  kitchen: "/static/textures/kitchen.png",
-  salzpflanzen: "/static/textures/salzpflanze.png",
+  quallen: withBase("textures/qualli.png"),
+  grillen: withBase("textures/grille.png"),
+  algen: withBase("textures/alge.png"),
+  kitchen: withBase("textures/kitchen.png"),
+  salzpflanzen: withBase("textures/salzpflanze.png"),
 };
 
 // BILDER PRO STANDORT
 const locationImages: Record<string, string[]> = {
   quallen: [
-    "/static/images/Qualle/Qualle1.png",
-    "/static/images/Qualle/Qualle2.png",
-    "/static/images/Qualle/Qualle3.png",
-    "/static/images/Qualle/Qualle4.png",
-    "/static/images/Qualle/Qualle5.png",
-    "/static/images/Qualle/Qualle6.png",
+    withBase("images/Qualle/Qualle1.png"),
+    withBase("images/Qualle/Qualle2.png"),
+    withBase("images/Qualle/Qualle3.png"),
+    withBase("images/Qualle/Qualle4.png"),
+    withBase("images/Qualle/Qualle5.png"),
+    withBase("images/Qualle/Qualle6.png"),
   ],
   salzpflanzen: [
-    "/static/images/salzpflanzen/SP2.png",
-    "/static/images/salzpflanzen/SP3.png",
-    "/static/images/salzpflanzen/SP4.png",
-    "/static/images/salzpflanzen/SP5.png",
-    "/static/images/salzpflanzen/SP6.png",
+    withBase("images/salzpflanzen/SP2.png"),
+    withBase("images/salzpflanzen/SP3.png"),
+    withBase("images/salzpflanzen/SP4.png"),
+    withBase("images/salzpflanzen/SP5.png"),
+    withBase("images/salzpflanzen/SP6.png"),
   ],
   algen: [
-    "/static/images/algen/alge1.png",
-    "/static/images/algen/alge2.png",
-    "/static/images/algen/alge3.png",
-    "/static/images/algen/alge4.png",
-    "/static/images/algen/alge5.png",
-    "/static/images/algen/alge6.png",
+    withBase("images/algen/alge1.png"),
+    withBase("images/algen/alge2.png"),
+    withBase("images/algen/alge3.png"),
+    withBase("images/algen/alge4.png"),
+    withBase("images/algen/alge5.png"),
+    withBase("images/algen/alge6.png"),
   ],
   kitchen: [
-    "/static/images/kitchen/k1.png",
-    "/static/images/kitchen/k3.png",
-    "/static/images/kitchen/k4.png",
-    "/static/images/kitchen/k5.png",
-    "/static/images/kitchen/k7.png",
-    "/static/images/kitchen/k8.png",
+    withBase("images/kitchen/k1.png"),
+    withBase("images/kitchen/k3.png"),
+    withBase("images/kitchen/k4.png"),
+    withBase("images/kitchen/k5.png"),
+    withBase("images/kitchen/k7.png"),
+    withBase("images/kitchen/k8.png"),
   ],
   grillen: [
-    "/static/images/grillen/grille1.png",
-    "/static/images/grillen/grille2.png",
-    "/static/images/grillen/grille3.png",
-    "/static/images/grillen/grille4.png",
-    "/static/images/grillen/grille5.png",
+    withBase("images/grillen/grille1.png"),
+    withBase("images/grillen/grille2.png"),
+    withBase("images/grillen/grille3.png"),
+    withBase("images/grillen/grille4.png"),
+    withBase("images/grillen/grille5.png"),
   ],
 };
 

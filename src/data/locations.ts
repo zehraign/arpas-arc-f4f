@@ -34,7 +34,7 @@ export const quizLocations = [
         file: "quiz_algen.json",
       },
       puzzle: {
-        image: "/static/images/puzzle/algenpuzzle.jpg",
+        image: `${import.meta.env.BASE_URL}images/puzzle/algenpuzzle.jpg`,
       },
     },
 
@@ -59,7 +59,7 @@ export const quizLocations = [
       },
     
     puzzle: {
-      image: "/static/images/puzzle/qualle.png", 
+      image: `${import.meta.env.BASE_URL}images/puzzle/qualle.png`, 
     },
   },
 

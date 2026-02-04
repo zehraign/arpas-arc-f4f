@@ -1,8 +1,8 @@
 export const quizLocations = [
   {
     id: "kitchen",
-    name: "Future Food Kitchen", //52.526585584459085, 13.360435521156997
-    coords: { lat: 52.526680230950014, lon: 13.360359078197334},
+    name: "Future Food Kitchen", //52.526679482391636, 13.360362818107328
+    coords: { lat: 52.526679482391636, lon: 13.360362818107328},
     radius: 5, // richtige coords: { lat: 52.45554951375966, lon: 13.52518413859404 }, 
 
     features: {

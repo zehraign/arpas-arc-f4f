@@ -1,7 +1,7 @@
 [
   {
     "question": "Welche wichtigen Nährstoffe liefern Quallen?",
-    "options": ["Proteine, Omega-3-Fettsäuren und Vitamine", "nur Wasser und Proteine", "Zucker"],
+    "options": ["Proteine, Omega-3-Fettsäuren und Vitamine", " Wasser und Proteine", "Zucker, Proteine und Eiweise"],
     "correct": 0
   },
   {
@@ -11,7 +11,7 @@
   },
   {
     "question": "Wie helfen Mikroalgen Quallen bei der Nährstoffproduktion?",
-    "options": ["Sie liefern Lichtenergie über Photosynthese ", "Sie fressen die Qualle", "Sie reinigen nur das Wasser"],
+    "options": ["Sie liefern Lichtenergie über Photosynthese ", "Sie fressen die Qualle", "Sie reinigen das Wasser"],
     "correct": 0
   },
   {

@@ -11,7 +11,7 @@ const INFO_PLANE_OFFSET_X = IMAGE_WIDTH + 0.2; // Abstand Info-Plane
 const GALLERY_SCALE = 1.25;  
 
 // --> Sphärische Bild-Positionen  
-const IMAGE_RADIUS = 3.5;        
+const IMAGE_RADIUS = 4;        
 const IMAGE_BASE_Y = 1;       
 const IMAGE_Y_VARIATION = 0.35;  
 
@@ -28,6 +28,8 @@ const getSphericalImagePositions = (count: number) =>
 const GALLERY_RADIUS_IMAGES = 2.6;
 const GALLERY_BASE_Y = 1.3;
 const GALLERY_Y_VARIATION = 0.35;
+
+const withBase = (path: string) => `${import.meta.env.BASE_URL}${path}`;
 
 // PRELOAD HOOK
 
@@ -79,7 +81,7 @@ const infoContent: Record<string, { title: string; content: string[] }[]> = {
     { title: "Warum Algen?", content: ["Wachsen sehr schnell", "Brauchen kaum Ackerland, Süßwasser oder Dünger", "Schonend für Umwelt und Klima"] },
     { title: "Wachstumsbedingungen", content: ["Benötigen Licht, Wasser und Nährstoffe", "Können kontrolliert gezüchtet werden"] },
     { title: "Wichtige Inhaltsstoffe", content: ["Enthalten Eiweiß, Vitamine und Omega-3-Fettsäuren", "Liefern wichtige Nährstoffe für den Menschen"] },
-    { title: "Indoor-Kultivierung", content: ["Unabhängig von Wetter und Jahreszeiten", "Kein Ackerland notwendig", "Produktion fast überall möglich"] },
+    { title: "Indoor-Kultivierung", content: ["Unabhängig von Wetter und Jahreszeiten", "Kein Ackerland notwendig", "Produktion fast überall möglich", "optimalen wachstum garantieren "] }, 
     { title: "Grünalgen im Fokus", content: ["Ca. 25 % Eiweiß", "Gute pflanzliche Proteinquelle"] },
     { title: "Besondere Vitamine", content: ["Enthalten Beta-Carotin", "Vorstufe von Vitamin A", "Wichtig für Augen, Haut und Immunsystem"] },
   ],
@@ -91,10 +93,10 @@ const infoContent: Record<string, { title: string; content: string[] }[]> = {
     { title: "Proteingehalt", content: ["Ca. 60 % Eiweiß", "Hohe Proteinqualität für menschliche Ernährung"] },
   ],
   kitchen: [
-    { title: "Was ist Future Food?", content: ["Nachhaltig erzeugte Lebensmittel der Zukunft", "Neue Nahrungsquellen für wachsende Weltbevölkerung", " Neue und alternative Nahrungsquellen: Makroalgen, Quallen, Salzpflanzen, Grillen"] },
+    { title: "Was ist Future Food?", content: ["Nachhaltig erzeugte Lebensmittel der Zukunft in der Stadt", "Neue Nahrungsquellen für wachsende Weltbevölkerung:", " Makroalgen, Quallen, Salzpflanzen, Grillen"] },
     { title: "Warum Insekten?", content: ["Proteinreich", "Umweltfreundlich und nachhaltig züchtbar", "Alternative zu Fleisch"] },
     { title: "Ziele nachhaltiger Ernährung", content: ["Gesunde Lebensmittel für alle Menschen", "Ressourcenschonend produzieren", "Weniger Lebensmittelverschwendung"] },
-    { title: "Produktion in Städten", content: ["Kürzere Transportwege", "Weniger Energie- und Ressourceneinsatz", "Effiziente Nutzung urbaner Räume"] },
+    { title: "Produktion in Städten", content: ["Kürzere Transportwege", "Weniger Ressourceneinsatz", "Effiziente Nutzung urbaner Räume"] },
     { title: "Queller-Pesto Zutaten:", content: ["100 g Queller", "80 g Cashewbruch", " 100 g Parmesan", " Olivenöl (nach Bedarf)", " Salz & Pfeffer (nach Geschmack)", " Frischer Zitronensaft"] },  
     { title: "Innerhalb planetarer Grenzen", content: ["Umwelt wird geschont", "Ressourcen werden nicht überlastet", "Produktion bleibt nachhaltig"] },
   ],
@@ -117,52 +119,52 @@ const infoContent: Record<string, { title: string; content: string[] }[]> = {
 
 //   BUTTON TEXTUREN
 const buttonTextures: Record<string, string> = {
-  quallen: "/static/textures/qualli.png",
-  grillen: "/static/textures/grille.png",
-  algen: "/static/textures/alge.png",
-  kitchen: "/static/textures/kitchen.png",
-  salzpflanzen: "/static/textures/salzpflanze.png",
+  quallen: withBase("textures/qualli.png"),
+  grillen: withBase("textures/grille.png"),
+  algen: withBase("textures/alge.png"),
+  kitchen: withBase("textures/kitchen.png"),
+  salzpflanzen: withBase("textures/salzpflanze.png"),
 };
 
 // BILDER PRO STANDORT
 const locationImages: Record<string, string[]> = {
   quallen: [
-    "/static/images/Qualle/Qualle1.png",
-    "/static/images/Qualle/Qualle2.png",
-    "/static/images/Qualle/Qualle3.png",
-    "/static/images/Qualle/Qualle4.png",
-    "/static/images/Qualle/Qualle5.png",
-    "/static/images/Qualle/Qualle6.png",
+    withBase("images/Qualle/Qualle1.png"),
+    withBase("images/Qualle/Qualle2.png"),
+    withBase("images/Qualle/Qualle3.png"),
+    withBase("images/Qualle/Qualle4.png"),
+    withBase("images/Qualle/Qualle5.png"),
+    withBase("images/Qualle/Qualle6.png"),
   ],
   salzpflanzen: [
-    "/static/images/salzpflanzen/SP2.png",
-    "/static/images/salzpflanzen/SP3.png",
-    "/static/images/salzpflanzen/SP4.png",
-    "/static/images/salzpflanzen/SP5.png",
-    "/static/images/salzpflanzen/SP6.png",
+    withBase("images/salzpflanzen/SP2.png"),
+    withBase("images/salzpflanzen/SP3.png"),
+    withBase("images/salzpflanzen/SP4.png"),
+    withBase("images/salzpflanzen/SP5.png"),
+    withBase("images/salzpflanzen/SP6.png"),
   ],
   algen: [
-    "/static/images/algen/alge1.png",
-    "/static/images/algen/alge2.png",
-    "/static/images/algen/alge3.png",
-    "/static/images/algen/alge4.png",
-    "/static/images/algen/alge5.png",
-    "/static/images/algen/alge6.png",
+    withBase("images/algen/alge1.png"),
+    withBase("images/algen/alge2.png"),
+    withBase("images/algen/alge3.png"),
+    withBase("images/algen/alge4.png"),
+    withBase("images/algen/alge5.png"),
+    withBase("images/algen/alge6.png"),
   ],
   kitchen: [
-    "/static/images/kitchen/k1.png",
-    "/static/images/kitchen/k3.png",
-    "/static/images/kitchen/k4.png",
-    "/static/images/kitchen/k5.png",
-    "/static/images/kitchen/k7.png",
-    "/static/images/kitchen/k8.png",
+    withBase("images/kitchen/k1.png"),
+    withBase("images/kitchen/k3.png"),
+    withBase("images/kitchen/k4.png"),
+    withBase("images/kitchen/k5.png"),
+    withBase("images/kitchen/k7.png"),
+    withBase("images/kitchen/k8.png"),
   ],
   grillen: [
-    "/static/images/grillen/grille1.png",
-    "/static/images/grillen/grille2.png",
-    "/static/images/grillen/grille3.png",
-    "/static/images/grillen/grille4.png",
-    "/static/images/grillen/grille5.png",
+    withBase("images/grillen/grille1.png"),
+    withBase("images/grillen/grille2.png"),
+    withBase("images/grillen/grille3.png"),
+    withBase("images/grillen/grille4.png"),
+    withBase("images/grillen/grille5.png"),
   ],
 };
 
@@ -179,8 +181,8 @@ const pulsatingImages: Record<string, number[]> = {
 const locationCaptions: Record<string, string[]> = {
   quallen: [" Mangrovenqualle, Raimond Spekking", " Mangrovenqualle, iStock", " Mangrovenqualle, Sina Schuldt", " Mangrovenquallen, Ali Ghandtschi", "Mangrovenquallen,  Ali Ghandtschi", "Mangrovenquallen, Ali Ghandtschi",],
   salzpflanzen: ["Queller, M.Fitzner", "Halophyten, S.Baldermann", " Halophyten im Gewaechshaus, S.Baldermann", "Halophyten im Gewaechshaus, S.Baldermann", "Queller im Frühjahr, Ulrike Graeber",], 
-  algen: ["Rinnensystem, S.Pophal", "Algen Tonneninhalt, Algen, S.Pophal", " Algen Tanks, S.Pophal", "Probeentnahme Algen, S.Pophal", "Probeentnahme Algen, S.POphal", "Erster Tag Algen kultivierung, f4f ",  ],
-  kitchen: ["Algenkekse, Jette Berend ", "Grillen- Pancakes, Jette Berend ", "Salzpflanzen (Queller) Dip mit veganem Lax, Jette Berend", "Quallen-Avocado-Salat, Jette Berend", " Vollkornspaghetti Queller Pesto, Julia Vogt", " Dulse, Julia Vogt",],
+  algen: ["Rinnensystem, S.Pophal", "Algen Tonneninhalt, Algen, S.Pophal", " Algen-Tanks, S.Pophal", "Probeentnahme Algen, S.Pophal", "Probeentnahme Algen, S.Pophal", "Erster Tag Algenkultivierung, f4f ",  ],
+  kitchen: ["Algenkekse, Jette Berend ", "Grillen-Pancakes, Jette Berend ", "Salzpflanzen (Queller) Dip mit veganem Lax, Jette Berend", "Quallen-Avocado-Salat, Jette Berend", " Vollkornspaghetti Queller Pesto, Julia Vogt", " Dulse, Julia Vogt",],
   grillen: ["Grille, f4f ", "Grillen, Jonah Duderstädt", "Grille, Jonah Duderstädt", "Insektenkultivierung im Detail , Jonah Duderstädt", "Hausgrillen,  Martin Rücker "], 
 };
 
@@ -210,7 +212,7 @@ function ImageButton({ texturePath, onClick }: { texturePath: string; onClick: (
 }
 
 //  InfoPlanes Component (feste Weltpositionen)
-interface InfoPlanesProps {
+interface InfoPlanesProps extends GroupProps {
   locationId: string;
   showInfo: boolean;
   setShowInfo: (v: boolean) => void;
@@ -234,6 +236,7 @@ export default function InfoPlanes({
   const [activeInfoIndices, setActiveInfoIndices] = useState<number[]>([]);
   const imagePlaneRefs = useRef<THREE.Group[]>([]);
   const introPlaneRef = useRef<THREE.Group>(null);
+  const imageOnlyRefs = useRef<THREE.Group[]>([]); // NUR Bild pulsiert
 
 
   const { camera } = useThree();
@@ -263,7 +266,7 @@ useFrame(() => {
     const active = pulsatingImages[locationId] || [];
 
     active.forEach((index) => {
-      const card = imagePlaneRefs.current[index];
+      const card = imageOnlyRefs.current[index]; // nur bild pulsiert hier 
       if (!card) return;
       const pulse = 1 + Math.sin(time * 2) * 0.06;
       card.scale.set(pulse, pulse, 1);
@@ -358,43 +361,51 @@ useFrame(() => {
         imagePlaneRefs.current[i] = el;
       }}
     >
-      {/* ========================= Bild + Hintergrund ========================= */}
-      <group
-        onPointerDown={() => {
-          setActiveInfoIndices((prev) =>
-            prev.includes(i)
-              ? prev.filter((index) => index !== i)
-              : [...prev, i]
-          );
-        }}
-      >
 
+{/* Diese Gruppe pulsiert (NUR Bild + Caption + Rahmen) */}
+<group
+  ref={(el) => {
+    if (!el) return;
+    imageOnlyRefs.current[i] = el; // ✅ nur diese Gruppe wird skaliert
+  }}
+  onPointerDown={() => {
+    setActiveInfoIndices((prev) =>
+      prev.includes(i)
+        ? prev.filter((index) => index !== i)
+        : [...prev, i]
+    );
+  }}
+>
+  {/* Hintergrundrahmen */}
+  <RoundedBox args={[IMAGE_WIDTH + 0.08, IMAGE_HEIGHT + 0.08, 0.04]} radius={0.04}>
+    <meshStandardMaterial
+      color={infoPlaneColors[locationId] || "#2B4E4C"}
+      roughness={0.6}
+      metalness={0.1}
+    />
+  </RoundedBox>
 
-                  <RoundedBox args={[IMAGE_WIDTH + 0.08, IMAGE_HEIGHT + 0.08, 0.04]} radius={0.04}>
-                    <meshStandardMaterial
-                      color={infoPlaneColors[locationId] || "#2B4E4C"}
-                      roughness={0.6}
-                      metalness={0.1}
-                    />
-                  </RoundedBox>
+  {/* Bild */}
+  <mesh position={[0, 0, 0.03]}>
+    <planeGeometry args={[IMAGE_WIDTH, IMAGE_HEIGHT]} />
+    <meshStandardMaterial map={tex} transparent toneMapped={false} />
+  </mesh>
 
-                  <mesh position={[0, 0, 0.03]}>
-                    <planeGeometry args={[IMAGE_WIDTH, IMAGE_HEIGHT]} />
-                    <meshStandardMaterial map={tex} transparent toneMapped={false} />
-                  </mesh>
+  {/* Bildunterschrift */}
+  <Text
+    position={[0, -(IMAGE_HEIGHT / 2 + 0.08), 0.04]}
+    fontSize={0.055}
+    color="white"
+    anchorX="center"
+    anchorY="top"
+    material-toneMapped={false}
+    maxWidth={IMAGE_WIDTH}
+    textAlign="center"
+  >
+    {caption}
+  </Text>
+</group>
 
-                  <Text
-                    position={[0, -(IMAGE_HEIGHT / 2 + 0.08), 0.04]}
-                    fontSize={0.055}
-                    color="white"
-                    anchorX="center"
-                    anchorY="top"
-                    material-toneMapped={false}
-                    maxWidth={IMAGE_WIDTH}
-                    textAlign="center"
-                  >
-                    {caption}
-                  </Text>
 
                   {/* Info-Box */}
                   {activeInfoIndices.includes(i) && (
@@ -440,19 +451,18 @@ useFrame(() => {
                         maxWidth={1.2}
                         textAlign="center"
                         lineHeight={1.45}
-                      >
+                        >
                         {planeInfo.content.length > 0
                           ? planeInfo.content.map((line) => `• ${line}`).join("\n")
                           : "HINZUFÜGEN"}
                       </Text>
                     </group>
                   )}
-                </group>
-              </group>
-            );
-          })}
-        </group>
+                </group> 
+              );
+            })}
+        </group> 
       )}
-    </group>
+    </group> 
   );
 }

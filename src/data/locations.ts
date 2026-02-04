@@ -2,7 +2,7 @@ export const quizLocations = [
   {
     id: "kitchen",
     name: "Future Food Kitchen", //52.526585584459085, 13.360435521156997
-    coords: { lat: 52.52668104686715, lon: 13.360361089854097},
+    coords: { lat: 52.526680230950014, lon: 13.360359078197334},
     radius: 5, // richtige coords: { lat: 52.45554951375966, lon: 13.52518413859404 }, 
 
     features: {
@@ -13,32 +13,33 @@ export const quizLocations = [
 
     button: {
       label: "Future-Food-Quiz 🍽️",
-      color: "#149085",
+      color: "#086159",
+     
     },
     infoId: "kitchen", // InfoPlanes
   },
 
   {
-    id: "algen",
+    id: "algen", 
     name: "Gebäude A – Algenlabor",
     //coords: { lat: 52.540636660690225, lon: 13.391817612557453 },
-    coords: { lat: 52.526585584459085, lon: 13.360435521156997},
+    coords: { lat: 52.540636660690225, lon: 13.391817612557453 },
   //lat: 52.526675994617136, lon: 13.360365790617525 zuhause 
   // zuhause 2 lat: 52.526589996755135, lon: 13.360429487398113
-    radius: 5, 
+    radius: 10, 
 
     features: {
       quiz: {
         file: "quiz_algen.json",
       },
       puzzle: {
-        image: "/static/images/puzzle/algenpuzzle.jpg",
+        image: `${import.meta.env.BASE_URL}images/puzzle/algenpuzzle.jpg`,
       },
     },
 
     button: {
       label: "Algen-Quiz 🌱",
-      color: "#3c8c40" 
+      color: "#29732d" 
     },
     infoId: "algen", // InfoPlane
   },
@@ -57,7 +58,7 @@ export const quizLocations = [
       },
     
     puzzle: {
-      image: "/static/images/puzzle/qualle.png", 
+      image: `${import.meta.env.BASE_URL}images/puzzle/qualle.png`, 
     },
   },
 
@@ -72,8 +73,9 @@ export const quizLocations = [
     id: "salzpflanzen",
     name: "Gebäude C – Salzpflanzenlabor",
    
-     coords: { lat: 52.45639953688056, lon: 13.525978466276289 },
-    radius: 50,
+     coords: { lat: 52.455111227730356, lon:13.525546761324394  },   
+
+    radius: 10,
 
     features: {
       quiz: {

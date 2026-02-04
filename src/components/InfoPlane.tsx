@@ -98,8 +98,8 @@ const infoContent: Record<string, { title: string; content: string[] }[]> = {
     { title: "Ziele nachhaltiger Ernährung", content: ["Gesunde Lebensmittel für alle Menschen", "Ressourcenschonend produzieren", "Weniger Lebensmittelverschwendung"] },
     { title: "Produktion in Städten", content: ["Kürzere Transportwege", "Weniger Ressourceneinsatz", "Effiziente Nutzung urbaner Räume"] },
     { title: "Queller-Pesto Zutaten:", content: ["100 g Queller", "80 g Cashewbruch", " 100 g Parmesan", " Olivenöl (nach Bedarf)", " Salz & Pfeffer (nach Geschmack)", " Frischer Zitronensaft"] },  
-    { title: "Innerhalb planetarer Grenzen (Ressourcen so nutzen, dass die Erde nicht überlastet wird)", content: ["Umwelt wird geschont", "Ressourcen werden nicht überlastet", "Produktion bleibt nachhaltig"] },
-  ],
+    { title: "Innerhalb planetarer Grenzen ", content: ["(Ressourcen so nutzen, dass die Erde nicht überlastet wird)", "Umwelt wird geschont", "Ressourcen werden nicht überlastet", "Produktion bleibt nachhaltig"] },
+  ], 
   salzpflanzen: [
     { title: "Was sind Salzpflanzen?", content: ["Halophyten: Pflanzen, die auf salzigen Böden wachsen können", "Anpassungsfähig an salzhaltige Umgebungen"] },
     { title: "Warum wichtig für die Zukunft?", content: ["Brauchen kein Frischwasser", "Können in Regionen wachsen, wo andere Pflanzen nicht gedeihen"] },

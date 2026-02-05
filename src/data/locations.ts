@@ -1,9 +1,9 @@
 export const quizLocations = [
   {
     id: "kitchen",
-    name: "Future Food Kitchen", //52.526679482391636, 13.360362818107328
-    coords: { lat: 52.526679482391636, lon: 13.360362818107328},
-    radius: 5, // richtige coords: { lat: 52.45554951375966, lon: 13.52518413859404 }, 
+    name: "Future Food Kitchen", //52.5266778505573, 13.360364159211882
+    coords: { lat: 52.454925431306826, lon: 13.525137894320649},
+    radius: 10, // richtige coords: { lat: 52.45554951375966, lon: 13.52518413859404 }, 
 
     features: {
       quiz: {
@@ -23,9 +23,9 @@ export const quizLocations = [
     id: "algen", 
     name: "Gebäude A – Algenlabor",
     //coords: { lat: 52.540636660690225, lon: 13.391817612557453 },
-    coords: { lat: 52.540636660690225, lon: 13.391817612557453 },
-  //lat: 52.526675994617136, lon: 13.360365790617525 zuhause 
-  // zuhause 2 lat: 52.526589996755135, lon: 13.360429487398113
+     coords: { lat: 52.45511384294132, lon: 13.52544464354287 },
+  //lat: 52.5266778505573, lon: 13.360364159211882 zuhause 
+  // zuhause 2 lat: 52.526584355002946, lon: 13.360435675215633
     radius: 10, 
 
     features: {
@@ -48,7 +48,7 @@ export const quizLocations = [
     id: "quallen",
     name: "Bibliothek – Quallenlabor",
    //s coords: { lat: 52.45510590524545, lon: 13.525163019961198 },
-    coords: { lat: 56.45510590524545, lon: 13.525163019961198  },
+    coords: { lat: 57.45510590524545, lon: 13.525163019961198  },
   
     radius: 10, 
 
@@ -94,7 +94,7 @@ export const quizLocations = [
     id: "grillen",
     name: "Gebäude E – Grillenlabor",
     
-   coords: { lat: 52.45639953688056, lon: 13.525978466276289 },
+   coords: { lat: 56.45639953688056, lon: 13.525978466276289 },
     radius: 50,
 
     features: {

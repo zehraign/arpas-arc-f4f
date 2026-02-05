@@ -1,9 +1,4 @@
-import {
-  XR,
-  IfInSessionMode,
-  createXRStore,
-  useXR,
-} from "@react-three/xr";
+import { XR, IfInSessionMode, createXRStore, useXR } from "@react-three/xr";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Text, RoundedBox } from "@react-three/drei";
 import { useEffect, useState, useRef, useMemo } from "react";
@@ -21,7 +16,10 @@ import ProgressBoard from "./components/ProgressBoard";
 import NavigationOverlay from "./navigation/NavigationOverlay";
 import MiniMapPreview from "./navigation/MiniMapPreview";
 import { NavigationModelProvider } from "./navigation/NavigationModelContext";
-import { NavigationOverlayProvider, useNavigationOverlay } from "./navigation/NavigationOverlayContext";
+import {
+  NavigationOverlayProvider,
+  useNavigationOverlay,
+} from "./navigation/NavigationOverlayContext";
 
 /* Data */
 import { quizLocations } from "./data/locations";
@@ -44,31 +42,113 @@ interface AppProps {
   topic: TopicData;
 }
 
-/* Billboard Helper */
-function Billboard({ children, position }: { children: React.ReactNode; position: [number, number, number]; }) {
+/* Billboard Helper (dreht zur Kamera, bleibt im Worldspace) */
+function Billboard({
+  children,
+  position,
+}: {
+  children: React.ReactNode;
+  position: [number, number, number];
+}) {
   const ref = useRef<THREE.Group>(null);
   const { camera } = useThree();
   useFrame(() => {
     if (!ref.current) return;
-    ref.current.lookAt(new THREE.Vector3(camera.position.x, ref.current.position.y, camera.position.z));
+    ref.current.lookAt(
+      new THREE.Vector3(camera.position.x, ref.current.position.y, camera.position.z)
+    );
   });
-  return <group ref={ref} position={position}>{children}</group>;
+  return (
+    <group ref={ref} position={position}>
+      {children}
+    </group>
+  );
+}
+
+/**
+ * SpawnInFrontOnKey
+ * Platziert Kinder bei spawnKey-Wechsel einmalig vor die Kamera und lässt sie dann im Raum stehen.
+ * (Nutzen wir für Quiz/Puzzle/Memory Overlays, damit sie nicht "hinten" bleiben.)
+ */
+function SpawnInFrontOnKey({
+  spawnKey,
+  offset = new THREE.Vector3(0, 0.05, -1.7),
+  children,
+}: {
+  spawnKey: string;
+  offset?: THREE.Vector3;
+  children: React.ReactNode;
+}) {
+  const ref = useRef<THREE.Group>(null);
+  const { camera } = useThree();
+
+  useEffect(() => {
+    if (!ref.current) return;
+
+    const pos = offset.clone().applyQuaternion(camera.quaternion).add(camera.position);
+    ref.current.position.copy(pos);
+    ref.current.lookAt(camera.position.x, ref.current.position.y, camera.position.z);
+  }, [spawnKey, camera, offset]);
+
+  return <group ref={ref}>{children}</group>;
+}
+
+/**
+ * LocationUIAnchor
+ * Ein gemeinsamer Anker für: Buttons + Badge-Leiste + Info Button.
+ * Bei Location-Wechsel wird alles einmalig vor dir platziert, danach bleibt es im Raum stehen.
+ */
+function LocationUIAnchor({
+  anchorKey,
+  distance = 1.9, // ✅ weiter nach hinten in den Raum
+  height = 0.1,
+  children,
+}: {
+  anchorKey: string;
+  distance?: number;
+  height?: number;
+  children: React.ReactNode;
+}) {
+  const ref = useRef<THREE.Group>(null);
+  const { camera } = useThree();
+
+  useEffect(() => {
+    if (!ref.current) return;
+
+    const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+    const pos = new THREE.Vector3()
+      .copy(camera.position)
+      .add(forward.multiplyScalar(distance));
+
+    pos.y += height;
+
+    ref.current.position.copy(pos);
+    ref.current.lookAt(camera.position.x, ref.current.position.y, camera.position.z);
+  }, [anchorKey, camera, distance, height]);
+
+  return <group ref={ref}>{children}</group>;
 }
 
 /* Sync Helpers */
 function NavigationOverlayStateSync({ isArActive }: { isArActive: boolean }) {
   const { close } = useNavigationOverlay();
-  useEffect(() => { if (!isArActive) close(); }, [isArActive, close]);
+  useEffect(() => {
+    if (!isArActive) close();
+  }, [isArActive, close]);
   return null;
 }
 function XrSessionSync({ onChange }: { onChange: (active: boolean) => void }) {
   const session = useXR((s) => s.session);
-  useEffect(() => { onChange(Boolean(session)); }, [session, onChange]);
+  useEffect(() => {
+    onChange(Boolean(session));
+  }, [session, onChange]);
   return null;
 }
 function DomOverlayRootSync({ onChange }: { onChange: (root: Element | null) => void }) {
   const domOverlayRoot = useXR((state) => state.domOverlayRoot);
-  useEffect(() => { onChange(domOverlayRoot ?? null); }, [domOverlayRoot, onChange]);
+  useEffect(() => {
+    onChange(domOverlayRoot ?? null);
+  }, [domOverlayRoot, onChange]);
   return null;
 }
 
@@ -107,32 +187,51 @@ function LocationInteractionButtons({
   if (!activeLocation || showQuiz || showPuzzle || showMemory || showInfo) return null;
 
   return (
-    <group position={[0, 1, -1.4]}>
+    <group>
       {canStartQuiz && (
-        <group position={[-0.6, 0.2, -1]}>
-          <RoundedBox args={[0.9, 0.32, 0.08]} radius={0.06} onPointerDown={() => handleStartInteraction("quiz")}>
+        <group position={[-0.6, 0.2, 0]}>
+          <RoundedBox
+            args={[0.9, 0.32, 0.08]}
+            radius={0.06}
+            onPointerDown={() => handleStartInteraction("quiz")}
+          >
             <meshStandardMaterial color={activeLocation.button?.color} />
           </RoundedBox>
-          <Text position={[0, 0, 0.06]} fontSize={0.065} color="white">{activeLocation.button?.label}</Text>
+          <Text position={[0, 0, 0.06]} fontSize={0.065} color="white">
+            {activeLocation.button?.label}
+          </Text>
         </group>
       )}
 
+      {/* Puzzle Button */}
       {activeLocation.features?.puzzle && (
-        <group position={[0.6, 0.2, -1]}>
-          <RoundedBox args={[0.9, 0.32, 0.08]} radius={0.06} onPointerDown={() => handleStartInteraction("puzzle")}>
+        <group position={[0.6, 0.2, 0]}>
+          <RoundedBox
+            args={[0.9, 0.32, 0.08]}
+            radius={0.06}
+            onPointerDown={() => handleStartInteraction("puzzle")}
+          >
             <meshStandardMaterial color={activeLocation.button?.color} />
           </RoundedBox>
-          <Text position={[0, 0, 0.06]} fontSize={0.065} color="white">Puzzle 🧩</Text>
+          <Text position={[0, 0, 0.06]} fontSize={0.065} color="white">
+            Puzzle 🧩
+          </Text>
         </group>
       )}
 
-      {/* Memory Button (Aktiviert wenn Feature im Location-Objekt oder ID Kitchen) */}
+      {/* ✅ Memory Button auf der gleichen Position wie Puzzle (sie sind ja nicht gleichzeitig) */}
       {(activeLocation.features?.memory || activeLocation.id === "kitchen") && (
-        <group position={[0.6, 0.2, -1]}>
-          <RoundedBox args={[1.1, 0.32, 0.08]} radius={0.06} onPointerDown={() => handleStartInteraction("memory")}>
+        <group position={[0.6, 0.2, 0]}>
+          <RoundedBox
+            args={[1.1, 0.32, 0.08]}
+            radius={0.06}
+            onPointerDown={() => handleStartInteraction("memory")}
+          >
             <meshStandardMaterial color="#086159" />
           </RoundedBox>
-          <Text position={[0, 0, 0.06]} fontSize={0.065} color="white">Memory Spiel 🃏</Text>
+          <Text position={[0, 0, 0.06]} fontSize={0.065} color="white">
+            Memory Spiel 🃏
+          </Text>
         </group>
       )}
     </group>
@@ -145,20 +244,27 @@ export default function App({ content_types, scene, topic }: AppProps) {
   const [xrSessionActive, setXrSessionActive] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   /* Game States */
   const [activeLocation, setActiveLocation] = useState<any | null>(null);
+
+  const activeLocationRef = useRef<any | null>(null);
+  const lastLocationIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    activeLocationRef.current = activeLocation;
+  }, [activeLocation]);
+
   const [quizData, setQuizData] = useState<any[] | null>(null);
   const [showQuiz, setShowQuiz] = useState(false);
   const [showPuzzle, setShowPuzzle] = useState(false);
   const [showMemory, setShowMemory] = useState(false);
   const [canStartQuiz, setCanStartQuiz] = useState(false);
+
   const isOverlayHidden = showInfo || showMemory || showQuiz || showPuzzle;
 
   useEffect(() => {
-    if (showQuiz || showPuzzle || showMemory) {
-      setShowInfo(false);
-    }
+    if (showQuiz || showPuzzle || showMemory) setShowInfo(false);
   }, [showQuiz, showPuzzle, showMemory]);
 
   /* XR Overlay Sync */
@@ -175,15 +281,18 @@ export default function App({ content_types, scene, topic }: AppProps) {
   const collectBadgeSilent = (id: string, callback?: () => void) => {
     if (!id || collectedBadges.includes(id)) return;
     setCollectedBadges((p) => [...p, id]);
-    if (callback) callback();
+    callback?.();
   };
 
   const showBadgePopup = (locationId: string) => {
     if (!locationId || shownBadgePopups.includes(locationId)) return;
     const count = collectedBadges.length + 1;
-    let message = count === 1 ? "Glückwunsch! Dein erstes Badge 🎉" : 
-                  count === 5 ? "WOW! Alle Badges gesammelt! ⭐ Master Explorer!" : 
-                  `Super! Dein ${count}. Badge!`;
+    const message =
+      count === 1
+        ? "Glückwunsch! Dein erstes Badge 🎉"
+        : count === 5
+        ? "WOW! Alle Badges gesammelt! ⭐ Master Explorer!"
+        : `Super! Dein ${count}. Badge!`;
     setNewBadgeText(message);
     setShownBadgePopups((prev) => [...prev, locationId]);
     if (badgeTimeout.current) clearTimeout(badgeTimeout.current);
@@ -191,52 +300,139 @@ export default function App({ content_types, scene, topic }: AppProps) {
   };
 
   const handleEnterAR = async () => {
-    try { await store.enterAR(); setInAR(true); } 
-    catch (error) { console.warn("XR session konnte nicht gestartet werden:", error); }
+    try {
+      await store.enterAR();
+      setInAR(true);
+    } catch (error) {
+      console.warn("XR session konnte nicht gestartet werden:", error);
+    }
   };
 
   /* Startscreen Animation */
   const base = import.meta.env.BASE_URL;
-  const frames = useMemo(() => Array.from({ length: 10 }, (_, i) => `${base}start/character/frame_${String(i + 1).padStart(2, '0')}.PNG`), [base]);
+  const frames = useMemo(
+    () =>
+      Array.from(
+        { length: 10 },
+        (_, i) => `${base}start/character/frame_${String(i + 1).padStart(2, "0")}.PNG`
+      ),
+    [base]
+  );
   const [frameIndex, setFrameIndex] = useState(0);
 
   useEffect(() => {
     if (inAR) return;
-    const id = setInterval(() => { setFrameIndex((p) => (p + 1) % 10); }, 160);
+    const id = setInterval(() => setFrameIndex((p) => (p + 1) % 10), 160);
     return () => clearInterval(id);
   }, [inAR]);
 
   /* Geo-Location Logik */
   useEffect(() => {
     if (!inAR) return;
-  
-    setIsLoading(true); //  LOADING START
-  
-    navigator.geolocation.getCurrentPosition(async (pos) => {
-      const { latitude, longitude } = pos.coords;
-      const found = quizLocations.find((loc) => {
-        const dist = distanceInMeters(latitude, longitude, loc.coords.lat, loc.coords.lon);
-        return dist < loc.radius;
-      });
-      if (!found) return;
-      setActiveLocation(found);
-      if (found.features?.quiz) {
-        const quizPath = `./data/${found.features.quiz.file}`;
-        const loader = quizzes[quizPath];
-        if (loader) {
-          const data = await loader();
-          setQuizData(data.default);
-          setCanStartQuiz(true);
+
+    const EXIT_MARGIN = 1.5;
+    const SWITCH_ADVANTAGE = 1.5;
+
+    let cancelled = false;
+    setIsLoading(true);
+
+    const pickLocation = (lat: number, lon: number, current: any | null) => {
+      const items = quizLocations
+        .map((loc) => ({
+          loc,
+          dist: distanceInMeters(lat, lon, loc.coords.lat, loc.coords.lon),
+        }))
+        .sort((a, b) => a.dist - b.dist);
+
+      const closest = items[0];
+      if (!closest) return null;
+
+      if (current) {
+        const currentDist = distanceInMeters(lat, lon, current.coords.lat, current.coords.lon);
+        if (currentDist < current.radius + EXIT_MARGIN) return current;
+
+        if (closest.dist < closest.loc.radius && closest.dist + SWITCH_ADVANTAGE < currentDist) {
+          return closest.loc;
         }
-      } else { setCanStartQuiz(false); }
-      setIsLoading(false); //  LOADING ENDE
+        return null;
+      }
+
+      return closest.dist < closest.loc.radius ? closest.loc : null;
+    };
+
+    const watchId = navigator.geolocation.watchPosition(
+      async (pos) => {
+        if (cancelled) return;
+
+        const { latitude, longitude } = pos.coords;
+
+        const current = activeLocationRef.current;
+        const found = pickLocation(latitude, longitude, current);
 
 
-    });
+        if (!found) {
+          lastLocationIdRef.current = null;
+          setActiveLocation(null);
+          setQuizData(null);
+          setCanStartQuiz(false);
+          setIsLoading(false);
+          return;
+        }
+
+        if (found.id === lastLocationIdRef.current) {
+          setIsLoading(false);
+          return;
+        }
+
+        lastLocationIdRef.current = found.id;
+
+        setShowQuiz(false);
+        setShowPuzzle(false);
+        setShowMemory(false);
+        setShowInfo(false);
+
+        setActiveLocation(found);
+        setQuizData(null);
+        setCanStartQuiz(false);
+        setIsLoading(true);
+
+        if (found.features?.quiz) {
+          const quizPath = `./data/${found.features.quiz.file}`;
+          const loader = quizzes[quizPath];
+          if (loader) {
+            try {
+              const data = await loader();
+              if (cancelled) return;
+              if (lastLocationIdRef.current === found.id) {
+                setQuizData(data.default);
+                setCanStartQuiz(true);
+              }
+            } catch (e) {
+              console.warn("Quiz laden fehlgeschlagen:", e);
+            }
+          }
+        }
+
+        setIsLoading(false);
+      },
+      (err) => {
+        console.warn("Geolocation Fehler:", err);
+        if (!cancelled) setIsLoading(false);
+      },
+      { enableHighAccuracy: true, maximumAge: 500, timeout: 10000 }
+    );
+
+    return () => {
+      cancelled = true;
+      navigator.geolocation.clearWatch(watchId);
+    };
   }, [inAR]);
 
   useEffect(() => {
-    if (!xrSessionActive || !domOverlayRoot) { setDomOverlayReady(false); return; }
+    if (!xrSessionActive || !domOverlayRoot) {
+      setDomOverlayReady(false);
+      return;
+    }
     setDomOverlayReady(true);
   }, [xrSessionActive, domOverlayRoot]);
 
@@ -247,9 +443,16 @@ export default function App({ content_types, scene, topic }: AppProps) {
           <img className="startscreen__bg" src={`${base}start/background.PNG`} alt="" />
           <div className="startscreen__text">
             <div className="startscreen__title">Willkommen beim AR Campus Guide</div>
-            <div className="startscreen__subtitle">Tippe auf START, um in den AR Modus zu wechseln.</div>
+            <div className="startscreen__subtitle">
+              Tippe auf START, um in den AR Modus zu wechseln.
+            </div>
           </div>
-          <img className="startscreen__character" src={frames[frameIndex]} alt="character" draggable={false} />
+          <img
+            className="startscreen__character"
+            src={frames[frameIndex]}
+            alt="character"
+            draggable={false}
+          />
           <button className="startscreen__startImgBtn" onClick={handleEnterAR}>
             <img src={`${base}start/ui/start-button.PNG`} alt="START" draggable={false} />
           </button>
@@ -263,127 +466,147 @@ export default function App({ content_types, scene, topic }: AppProps) {
           <XrSessionSync onChange={setXrSessionActive} />
           <DomOverlayRootSync onChange={setDomOverlayRoot} />
           <IfInSessionMode allow="immersive-ar">
-            
-          {isLoading && (
-  <Billboard position={[0, 1.4, -1.8]}  >
-    <group>
-      <RoundedBox args={[1.5, 0.4, 0.06]} radius={0.05}>
-        <meshStandardMaterial color="#84b3b0" />
-      </RoundedBox>
-
-      <Text
-        position={[0, 0.05, 0.04]}
-        fontSize={0.08}
-        color="#105c57"
-        textAlign="center"
-      >
-        Einen Moment bitte…
-      </Text>
-
-      <Text
-        position={[0, -0.15, 0.04]}
-        fontSize={0.055}
-        color="#105c57"
-        textAlign="center"
-      >
-        Inhalte werden geladen
-      </Text>
-    </group>
-  </Billboard>
-)}
-
-            {/* UI: Progress Board (nur zeigen wenn kein Spiel aktiv) */}
-            <>
-              <IndexPage
-                contentTypes={content_types}
-                sceneData={scene}
-                topicData={topic}
-                overlayHidden={isOverlayHidden}
-              />
-              {!isOverlayHidden && (
-                <Billboard position={[0, 1.2, -1.2]}>
-                  <ProgressBoard collected={collectedBadges} />
-                </Billboard>
-              )}
-            </>
-
-            {/* UI: Badge Popup Animation */}
-            {newBadgeText && !showInfo && (
-              <Billboard position={[0, 1.5, -1.5]}>
-                <group scale={[0.8, 0.8, 0.8]}>
-                  <RoundedBox args={[1.8, 0.4, 0.05]} radius={0.05}><meshStandardMaterial color="#caedea" /></RoundedBox>
-                  <Text position={[0, 0, 0.03]} fontSize={0.07} color="#326661" maxWidth={1.6} textAlign="center">{newBadgeText}</Text>
+            {/* Loading */}
+            {isLoading && (
+              <Billboard position={[0, 1.4, -1.8]}>
+                <group>
+                  <RoundedBox args={[1.5, 0.4, 0.06]} radius={0.05}>
+                    <meshStandardMaterial color="#84b3b0" />
+                  </RoundedBox>
+                  <Text position={[0, 0.05, 0.04]} fontSize={0.08} color="#105c57" textAlign="center">
+                    Einen Moment bitte…
+                  </Text>
+                  <Text
+                    position={[0, -0.15, 0.04]}
+                    fontSize={0.055}
+                    color="#105c57"
+                    textAlign="center"
+                  >
+                    Inhalte werden geladen
+                  </Text>
                 </group>
               </Billboard>
             )}
 
-            {/* Standort Interaktionen (Buttons) */}
-            <LocationInteractionButtons
-              activeLocation={activeLocation}
-              canStartQuiz={canStartQuiz}
-              showQuiz={showQuiz}
-              showPuzzle={showPuzzle}
-              showMemory={showMemory}
-              showInfo={showInfo}
-              setShowQuiz={setShowQuiz}
-              setShowPuzzle={setShowPuzzle}
-              setShowMemory={setShowMemory}
+            {/* Model/IndexPage bleibt wie vorher (nicht spawnen) */}
+            <IndexPage
+              contentTypes={content_types}
+              sceneData={scene}
+              topicData={topic}
+              overlayHidden={isOverlayHidden}
             />
 
-            {/* --- GAME OVERLAYS --- */}
+            {/* Badge Popup (kann so bleiben) */}
+            {newBadgeText && !showInfo && (
+              <Billboard position={[0, 1.5, -1.5]}>
+                <group scale={[0.8, 0.8, 0.8]}>
+                  <RoundedBox args={[1.8, 0.4, 0.05]} radius={0.05}>
+                    <meshStandardMaterial color="#caedea" />
+                  </RoundedBox>
+                  <Text
+                    position={[0, 0, 0.03]}
+                    fontSize={0.07}
+                    color="#326661"
+                    maxWidth={1.6}
+                    textAlign="center"
+                  >
+                    {newBadgeText}
+                  </Text>
+                </group>
+              </Billboard>
+            )}
+
+            {/* ✅ Gemeinsamer Anker: Buttons + Badge-Leiste + Info (bleibt im Raum, neu bei Location) */}
+            {activeLocation && (
+              <LocationUIAnchor anchorKey={activeLocation.id} distance={1.9} height={0.1}>
+                {/* Badge-Leiste: gleiche "Weltposition-Logik" wie Buttons */}
+                {!isOverlayHidden && (
+                  <group position={[0, 0.55, 0]}>
+                    <ProgressBoard collected={collectedBadges} />
+                  </group>
+                )}
+
+                {/* Buttons */}
+                <LocationInteractionButtons
+                  key={activeLocation.id}
+                  activeLocation={activeLocation}
+                  canStartQuiz={canStartQuiz}
+                  showQuiz={showQuiz}
+                  showPuzzle={showPuzzle}
+                  showMemory={showMemory}
+                  showInfo={showInfo}
+                  setShowQuiz={setShowQuiz}
+                  setShowPuzzle={setShowPuzzle}
+                  setShowMemory={setShowMemory}
+                />
+
+                {/* Info Button/Planes: gleiche Ankerposition, nur rechts verschoben */}
+                {activeLocation.infoId && !showQuiz && !showPuzzle && !showMemory && (
+                  <group position={[1.4, 0.05, -0.05]}>
+                    <InfoPlanes
+                      locationId={activeLocation.infoId}
+                      showInfo={showInfo}
+                      setShowInfo={setShowInfo}
+                    />
+                  </group>
+                )}
+              </LocationUIAnchor>
+            )}
+
+            {/* --- GAME OVERLAYS (spawnen bei Öffnen, damit sie nicht hinten bleiben) --- */}
 
             {/* QUIZ */}
-            {showQuiz && quizData && (
-              <QuizPlane 
-                questions={quizData} 
-                position={[0, 1, -1.7]} 
-                onClose={(comp) => { 
-                  setShowQuiz(false); 
-                  if (comp && activeLocation) {
-                    const id = activeLocation.infoId || activeLocation.id;
-                    collectBadgeSilent(id, () => showBadgePopup(id));
-                  }
-                }} 
-              />
+            {showQuiz && quizData && activeLocation && (
+              <SpawnInFrontOnKey
+                spawnKey={`${activeLocation.id}-quiz-open`}
+                offset={new THREE.Vector3(0, 0.05, -1.7)}
+              >
+                <QuizPlane
+                  questions={quizData}
+                  position={[0, 0, 0]}
+                  onClose={(comp) => {
+                    setShowQuiz(false);
+                    if (comp && activeLocation) {
+                      const id = activeLocation.infoId || activeLocation.id;
+                      collectBadgeSilent(id, () => showBadgePopup(id));
+                    }
+                  }}
+                />
+              </SpawnInFrontOnKey>
             )}
 
             {/* PUZZLE */}
             {showPuzzle && activeLocation?.features?.puzzle && (
-              <PuzzleWithBack 
-                imageUrl={activeLocation.features.puzzle.image} 
-                onBack={(comp) => { 
-                  setShowPuzzle(false); 
-                  if (comp && activeLocation) {
-                    const id = activeLocation.infoId || activeLocation.id;
-                    collectBadgeSilent(id, () => showBadgePopup(id));
-                  }
-                }} 
-              />
-            )}
-            
-            {/* MEMORY */}
-            {showMemory && (
-              <MemoryGame 
-                onClose={(completed) => { 
-                  setShowMemory(false); 
-                  if (completed && activeLocation) { 
-                    const badgeId = activeLocation.infoId || activeLocation.id;
-                    collectBadgeSilent(badgeId, () => showBadgePopup(badgeId)); 
-                  } 
-                }} 
-              />
+              <SpawnInFrontOnKey
+                spawnKey={`${activeLocation.id}-puzzle-open`}
+                offset={new THREE.Vector3(0, 0.05, -1.7)}
+              >
+                <PuzzleWithBack
+                  imageUrl={activeLocation.features.puzzle.image}
+                  onBack={(comp) => {
+                    setShowPuzzle(false);
+                    if (comp && activeLocation) {
+                      const id = activeLocation.infoId || activeLocation.id;
+                      collectBadgeSilent(id, () => showBadgePopup(id));
+                    }
+                  }}
+                />
+              </SpawnInFrontOnKey>
             )}
 
-            {/* INFO PLANES –*/}
-{activeLocation?.infoId && !showQuiz && !showPuzzle && !showMemory && (
-  <group position={[3, 0.5, -1]}>
-    <InfoPlanes
-      locationId={activeLocation.infoId}
-      showInfo={showInfo}
-      setShowInfo={setShowInfo}
-    />
-  </group>
+            {/* MEMORY */}
+            {showMemory && activeLocation?.id === "kitchen" && (
+  <MemoryGame
+    onClose={(completed) => {
+      setShowMemory(false);
+      if (completed && activeLocation) {
+        const badgeId = activeLocation.infoId || activeLocation.id;
+        collectBadgeSilent(badgeId, () => showBadgePopup(badgeId));
+      }
+    }}
+  />
 )}
+
           </IfInSessionMode>
         </XR>
       </Canvas>
@@ -391,7 +614,10 @@ export default function App({ content_types, scene, topic }: AppProps) {
       <NavigationOverlayStateSync isArActive={xrSessionActive} />
       <NavigationModelProvider>
         <MiniMapPreview isArActive={inAR} portalRoot={navPortalRoot} hidden={isOverlayHidden} />
-        <NavigationOverlay portalRoot={navPortalRoot} showSessionWarning={inAR && !xrSessionActive} />
+        <NavigationOverlay
+          portalRoot={navPortalRoot}
+          showSessionWarning={inAR && !xrSessionActive}
+        />
       </NavigationModelProvider>
     </NavigationOverlayProvider>
   );

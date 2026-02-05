@@ -1,14 +1,14 @@
 import { useEffect, useLayoutEffect, useMemo, useCallback, useState, useRef, type MouseEvent } from "react";
 import { useXRInputSourceEvent, useXRStore, XRDomOverlay } from "@react-three/xr";
 import * as THREE from "three";
-import { Header, Footer, DirectionalArrow, HelpMenu, ObjectDescription } from "../../components-ui";
+import { Header, Footer, DirectionalArrow, HelpMenu } from "../../components-ui";
 import { ContentTypesData } from "../../types/contentTypesData";
-import { SceneData, ObjectData, VariantData } from "../../types/objectData";
+import { SceneData } from "../../types/objectData";
 import { TopicData } from "../../types/topicData";
 import { ObjectScene } from "../../components";
-import { useThree } from "@react-three/fiber";
-import { Position, Rotation, Scale } from "../../types/transform";
-import { getClosestObject, getIntersectedSceneObject, getObjectPosition } from "../../utility/objects";
+import { useThree, useFrame } from "@react-three/fiber";
+import { Position } from "../../types/transform";
+import { getClosestObject, getIntersectedSceneObject } from "../../utility/objects";
 import { Compass2D, Compass3D } from "../../components-ui/compass";
 import "./style.css";
 import useSceneStore from "../../store/sceneStore";
@@ -47,7 +47,8 @@ const IndexPage = ({
 }) => {
     // XR objects and values
     const store = useXRStore();
-    const { camera, ...state } = useThree();
+    const three = useThree();
+    const { camera, size } = three;
     const { scene, setScene } = useSceneStore();
     const { messages, addScreenMessage, removeScreenMessage } = useMessageStore();
     const groundMesh = store.getState().groundMesh;
@@ -89,6 +90,9 @@ const IndexPage = ({
 
     // Scene values
     const [selectedObject, setSelectedObject] = useState<number | null>(null);
+    const selectedObjectRef = useRef<THREE.Object3D | null>(null);
+    const objectPopupRef = useRef<HTMLDivElement>(null);
+    const [isObjectPopupVisible, setIsObjectPopupVisible] = useState(false);
     const [selectedVariants, setSelectedVariants] = useState<Record<number, number>>({});
 
     const setCurrentVariant = useCallback((objectId: number, variantId: number) => {
@@ -123,6 +127,16 @@ const IndexPage = ({
         if (!scene.objects?.length) return null;
         return getClosestObject(worldPosition, scene.objects, selectedVariants, getPosition);
     }, [scene.objects, worldPosition, selectedVariants, getPosition]);
+
+    const selectedSceneObject = useMemo(() => {
+        if (selectedObject === null) return null;
+        return scene.objects.find((o) => o.id === selectedObject) ?? null;
+    }, [scene.objects, selectedObject]);
+    const selectedVariant = useMemo(() => {
+        if (!selectedSceneObject) return null;
+        const variantId = selectedVariants[selectedSceneObject.id] ?? selectedSceneObject.variants[0]?.id;
+        return selectedSceneObject.variants.find((v) => v.id === variantId) ?? null;
+    }, [selectedSceneObject, selectedVariants]);
 
     const zonesWithPosition = useMemo(
         () => characterZones.map((z) => ({
@@ -224,9 +238,15 @@ const IndexPage = ({
         (event) => {
             if (overlayHidden || !scene) return;
 
-            const selectedObjectId = getIntersectedSceneObject(event, { ...state, camera }, scene.objects);
-            if (selectedObjectId) {
-                setSelectedObject(selectedObjectId);
+            const hit = getIntersectedSceneObject(event, three, scene.objects);
+            if (hit) {
+                setSelectedObject(hit.objectId);
+                selectedObjectRef.current = hit.object;
+                setIsObjectPopupVisible(true);
+            } else {
+                setSelectedObject(null);
+                selectedObjectRef.current = null;
+                setIsObjectPopupVisible(false);
             }
         },
         [scene, overlayHidden]
@@ -239,6 +259,29 @@ const IndexPage = ({
             setCompassPosition(camera.position.clone());
         }
     }, [camera.position.x, camera.position.z]);
+
+    useEffect(() => {
+        if (overlayHidden) {
+            setIsObjectPopupVisible(false);
+            selectedObjectRef.current = null;
+        }
+    }, [overlayHidden]);
+
+    useFrame(() => {
+        if (!isObjectPopupVisible || !objectPopupRef.current || selectedObject === null) return;
+        if (!selectedObjectRef.current) return;
+        const worldPosition = new THREE.Vector3();
+        selectedObjectRef.current.getWorldPosition(worldPosition);
+        const projected = worldPosition.project(camera);
+        const isInView = projected.z > -1 && projected.z < 1;
+        objectPopupRef.current.style.display = isInView ? "block" : "none";
+        if (!isInView) return;
+
+        const x = (projected.x * 0.5 + 0.5) * size.width;
+        const y = (-projected.y * 0.5 + 0.5) * size.height;
+        objectPopupRef.current.style.left = `${x}px`;
+        objectPopupRef.current.style.top = `${y}px`;
+    });
 
     const handleOverlayClick = useCallback(
         (event: MouseEvent<HTMLDivElement>) => {
@@ -324,15 +367,33 @@ const IndexPage = ({
                             fontSize={fontSize}
                         />
 
-                        {selectedObject && (
-                            <ObjectDescription
-                                objectId={selectedObject}
-                                variantId={selectedVariants[selectedObject]}
-                                headerHeight={headerHeight}
-                                setCurrentVariant={setCurrentVariant}
-                                onClose={() => setSelectedObject(null)}
-                                fontSize={fontSize}
-                            />
+                        {isObjectPopupVisible && selectedObject !== null && (
+                            <div
+                                ref={objectPopupRef}
+                                className="object-popup"
+                                data-no-header-toggle
+                                style={{ left: "50%", top: "50%" }}
+                            >
+                                <div className="object-popup__header">
+                                    <span className="object-popup__title">
+                                        {selectedSceneObject?.name ?? "Objekt"}
+                                    </span>
+                                    <button
+                                        type="button"
+                                        className="object-popup__close"
+                                        aria-label="Popup schließen"
+                                        onClick={() => {
+                                            setIsObjectPopupVisible(false);
+                                            setSelectedObject(null);
+                                        }}
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+                                <div className="object-popup__text">
+                                    {selectedVariant?.description ?? "Erklärungstext hinzufügen."}
+                                </div>
+                            </div>
                         )}
 
                         {/* Footer */}

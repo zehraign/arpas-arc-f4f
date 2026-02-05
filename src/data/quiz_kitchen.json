@@ -1,12 +1,12 @@
 [
   {
     "question": "Was bedeutet „Future Food“?",
-    "options": ["Nachhaltig erzeugte Lebensmittel der Zukunft", "Essen aus dem Supermarkt", "Nahrung billig produzieren"],
+    "options": ["Nachhaltig erzeugte Lebensmittel der Zukunft", "Essen aus dem Supermarkt", "Nahrung billig und schnell produzieren"],
     "correct": 0
   },
   {
     "question": "Warum werden Insekten als Nahrungsmittel immer wichtiger?",
-    "options": ["Sie brauchen viel Platz", "Sie sind proteinreich und umweltfreundlich und können nachhaltig angezogen werden", "Sie sind teuer"],
+    "options": ["Sie brauchen viel Platz", "Sie sind proteinreich und umweltfreundlich und können nachhaltig angezogen werden", "Sie sind billig und in außreichender Menge verfügbar"],
     "correct": 1
   },
   {
@@ -26,7 +26,7 @@
   }, 
   {
     "question": "Warum sind Makroalgen, Quallen, Salzpflanzen und Grillen wichtig für die Zukunft?",
-    "options": ["Sie sind exotisch", "sie bieten neue und alternative Nahrungsquellen", "Sie sind teuer"],
+    "options": ["Sie sind exotisch", "sie bieten neue und alternative Nahrungsquellen", "Weil sie nur in sehr kalten Regionen wachsen"],
     "correct": 1
   }
 ]

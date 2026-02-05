@@ -98,3 +98,26 @@
     display: block;
     image-rendering: pixelated;
 }
+
+.startscreen__credits {
+    position: absolute;
+    right: 4vw;
+    bottom: 3vh;
+    max-width: min(460px, 60vw);
+    font-size: 12px;
+    line-height: 1.3;
+    color: #fff;
+    text-align: right;
+    text-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
+    z-index: 2;
+    pointer-events: none;
+}
+
+@media (max-width: 480px) {
+    .startscreen__credits {
+        right: 3vw;
+        bottom: 2vh;
+        max-width: 70vw;
+        font-size: 10px;
+    }
+}

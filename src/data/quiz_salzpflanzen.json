@@ -2,12 +2,12 @@
   
   {
     "question": "Was sind Salzpflanzen (Halophyten)?",
-    "options": ["Pflanzen, die nur im Wald wachsen", "Pflanzen, die auf salzigen Böden wachsen können", "Zimmerpflanzen"],
+    "options": ["Pflanzen, die nur im Wald wachsen", "Pflanzen, die auf salzigen Böden wachsen können", "Zimmerpflanzen, welche die Luft reinigen"],
     "correct": 1
   },
   {
     "question": "Warum sind Salzpflanzen für die Zukunft wichtig?",
-    "options": ["Sie wachsen überall", "Sie brauchen kein Frischwasser", ""],
+    "options": ["Sie wachsen überall", "Sie brauchen kein Frischwasser", "sie sind sehr selten"],
     "correct": 1
   },
   {

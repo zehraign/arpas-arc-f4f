@@ -26,11 +26,11 @@ export type VariantData = {
     offset_position: [number, number, number];  // Local position offset
     offset_rotation: [number, number, number];  // Local rotation offset (pitch,yaw,roll) in degrees
     offset_scale: [number, number, number];     // Local scale multiplier
-    weight: number;                             // Weight / relevance factor
-    likes: number;                              // Positive reaction count
-    isLiked: boolean;                           // Whether current user liked
-    dislikes: number;                           // Negative reaction count
-    isDisliked: boolean;                        // Whether current user disliked
+    weight?: number;                            // Optional weight / relevance factor
+    likes?: number;                             // Optional positive reaction count
+    isLiked?: boolean;                          // Optional user-like flag
+    dislikes?: number;                          // Optional negative reaction count
+    isDisliked?: boolean;                       // Optional user-dislike flag
 };
 
 export type CommentData = {

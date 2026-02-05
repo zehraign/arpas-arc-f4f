@@ -14,25 +14,20 @@ export const BenchScene: SceneData = {
         { // duaa koordinaten  "lat": 52.540636660690225, "lon":13.391817612557453 , zehra 52.451405444313316, 13.477409860925572
             // h  52.540636660690225, 13.391817612557453 // video 52.45670427037289, 13.526339844480509
             id: 206,
-            name: "Algen Tank",
-            qr_id: "algen-tank",
+            name: "Paternoster",
+            qr_id: "paternoster",
             coordinates: [52.451405444313316, 13.477409860925572 , 0],// { lat: 52.45670427037289, lon: 13.526339844480509 }
             comments: [], 
             variants: [
                 {
                     id: 1,
-                    name: "Algentanks",
-                    description: "Algentanks GLB",
+                    name: "Paternoster",
+                    description: "Ein vertikales Anbausystem für platzsparende urbane Lebensmittelproduktion und die nachhaltige Kultivierung von Algen, Salzpflanzen, Quallen und Grillen.",
                     mesh_id: "models/paterNoster.glb",
                     mesh_url: `${import.meta.env.BASE_URL}models/paterNoster.glb`,
                     offset_position: [0.5, -0.1, -2], 
                     offset_rotation: [0, 0, 0],
                     offset_scale: [20, 25, 20],
-                    weight: 1,
-                    likes: 0,
-                    isLiked: false,
-                    dislikes: 0,
-                    isDisliked: false,
                 },
             ],
         },

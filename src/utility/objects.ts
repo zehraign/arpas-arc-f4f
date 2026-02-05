@@ -7,12 +7,12 @@ import { Position } from "../types/transform";
  * Computes XR interaction and returns the first intersected scene object.
  *
  * @param {XRInputSourceEvent} event - XR input event from selectstart.
- * @param {THREE.Scene} scene - The active Three.js scene.
+ * @param {RootState} state - R3F state with scene and XR renderer.
  * @param {Array<{ id: number }>} sceneObjects - List of tracked scene objects.
- * @returns { { id: number } | null } - The selected scene object or null if no valid object is found.
+ * @returns {{ objectId: number; object: THREE.Object3D } | null} - The selected scene object hit or null if no valid object is found.
  */
 export function getIntersectedSceneObject(event: XRInputSourceEvent, state: RootState, objects: ObjectData[]
-): number | null {
+): { objectId: number; object: THREE.Object3D } | null {
     const inputSource = event.inputSource;
     const referenceSpace = state.gl.xr.getReferenceSpace() as XRSpace;
 
@@ -29,9 +29,16 @@ export function getIntersectedSceneObject(event: XRInputSourceEvent, state: Root
 
     console.log("Intersects:", intersects);
     for (const hit of intersects) {
-        const sceneObjectId = hit.object?.userData?.sceneObjectId;
+        let current: THREE.Object3D | null = hit.object;
+        while (current && current.userData?.sceneObjectId === undefined) {
+            current = current.parent;
+        }
+        const sceneObjectId = current?.userData?.sceneObjectId;
         if (sceneObjectId !== undefined) {
-            return objects.find(obj => obj.id === sceneObjectId)?.id || null;
+            const match = objects.find(obj => obj.id === sceneObjectId);
+            if (match && current) {
+                return { objectId: match.id, object: current };
+            }
         }
     }
 

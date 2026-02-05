@@ -35,8 +35,8 @@
     {
         "id": "h-gebäude",
         "name": "Gebäude H, Makroalgenlabor mit Algentanks",
-        "lat": 52.45507510907863,
-        "lng":  13.525374946364211,
+        "lat": 52.455047890301046, 
+        "lng": 13.52508401589188,
         "geo": {
             "lat": 52.45594,
             "lon": 13.52566,

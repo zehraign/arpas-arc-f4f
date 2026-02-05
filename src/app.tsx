@@ -253,6 +253,9 @@ export default function App({ content_types, scene, topic }: AppProps) {
           <button className="startscreen__startImgBtn" onClick={handleEnterAR}>
             <img src={`${base}start/ui/start-button.PNG`} alt="START" draggable={false} />
           </button>
+          <div className="startscreen__credits">
+            Zukunftsbild „Agrarsysteme der Zukunft“. (S. Fleischmann, P. Albers, M. Schreiner)
+          </div>
         </div>
       )}
 

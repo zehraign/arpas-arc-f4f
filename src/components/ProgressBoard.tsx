@@ -1,13 +1,15 @@
-import { Text, RoundedBox } from "@react-three/drei";
-import { useState, useRef, useEffect } from "react";
-import * as THREE from "three";
+import { Text, RoundedBox } from "@react-three/drei"; // 3D-Komponenten für Text und abgerundete Boxen
+import { useState, useRef, useEffect } from "react"; // React Hooks für State, Referenzen und Effekte
+import * as THREE from "three"; // Grundlegende 3D-Funktionen, Farben, Geometrien etc.
 
+// Props für die Komponente: welche Badges gesammelt wurden
 interface ProgressBoardProps {
   collected: string[]; // z.B. ["algen", "quallen"]
 }
 
+// Hauptkomponente für das Fortschritts-Board
 export default function ProgressBoard({ collected }: ProgressBoardProps) {
-  const [showInfoOverlay, setShowInfoOverlay] = useState(false);
+  const [showInfoOverlay, setShowInfoOverlay] = useState(false); // steuert anzeige der info overlays
 
   const locations = [
     { id: "algen", label: "🌱", name: "Algen" },
@@ -17,6 +19,7 @@ export default function ProgressBoard({ collected }: ProgressBoardProps) {
     { id: "quallen", label: "🪼", name: "Quallen" },
   ];
 
+  // Zeigt Infos zu einem einzelnen Badge an, wenn es angeklickt wird
   const [activeBadgeInfo, setActiveBadgeInfo] = useState<{
     id: string;
     label: string;
@@ -27,8 +30,8 @@ export default function ProgressBoard({ collected }: ProgressBoardProps) {
   const badgeInfoTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   return (
-    <group position={[-0.9, 1.6, -1.2]}>
-      {/* Hintergrund */}
+    <group position={[-0.9, 1.6, -1.2]}> 
+      {/* Hintergrund  platte grün*/}
       <RoundedBox args={[1.8, 0.7, 0.06]} radius={0.08}>
         <meshStandardMaterial color="#1f3f3c" />
       </RoundedBox>
@@ -44,7 +47,7 @@ export default function ProgressBoard({ collected }: ProgressBoardProps) {
         Fortschritt
       </Text>
 
-      {/* Info-Button */}
+      {/* Info-Button i */}
       <group position={[0.75, 0.22, 0.06]} onPointerDown={() => setShowInfoOverlay(!showInfoOverlay)}>
         
         <RoundedBox args={[0.24, 0.14, 0.051]} radius={0.035}>
@@ -56,7 +59,7 @@ export default function ProgressBoard({ collected }: ProgressBoardProps) {
         </Text>
       </group>
 
-      {/* Info-Overlay */}
+      {/* Info-Overlay mit anleitung */}
       {showInfoOverlay && (
         <group position={[0, -0.3, 0.08]}>
           <RoundedBox args={[1.7, 0.4, 0.05]} radius={0.05}>
@@ -79,7 +82,7 @@ export default function ProgressBoard({ collected }: ProgressBoardProps) {
         </group>
       )}
 
-      {/* Badges */}
+      {/* Badges für jeden standort */}
       {locations.map((loc, index) => {
   const isCollected = collected.includes(loc.id);
 
@@ -106,6 +109,7 @@ export default function ProgressBoard({ collected }: ProgressBoardProps) {
         }, 5000);
       }}
     >
+             {/* Kreis als Badge */}
       <mesh>
         <circleGeometry args={[0.1, 32]} />
         <meshStandardMaterial
@@ -114,7 +118,7 @@ export default function ProgressBoard({ collected }: ProgressBoardProps) {
           emissiveIntensity={isCollected ? 0.6 : 0}
         />
       </mesh>
-
+ {/* emojis */}
       <Text
         position={[0, 0, 0.03]}
         fontSize={0.1}
@@ -127,6 +131,7 @@ export default function ProgressBoard({ collected }: ProgressBoardProps) {
   );
 })}
 
+{/* Info-Box für angeklickte Badge */}
 {activeBadgeInfo && (
   <group position={[0, -0.55, 0.09]}>
     <RoundedBox args={[1.6, 0.32, 0.05]} radius={0.05}>
@@ -149,7 +154,7 @@ export default function ProgressBoard({ collected }: ProgressBoardProps) {
   </group>
 )}
 
-      {/* Spezial-Badge */}
+      {/* Spezial-Badge wenn man alle gesammelt hat */}
       {allCollected && (
         <group position={[0, -0.35, 0.08]}>
           <Text

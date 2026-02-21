@@ -1,27 +1,28 @@
-import { GroupProps, useFrame, useThree } from "@react-three/fiber";
-import { Text, RoundedBox } from "@react-three/drei";
+import { GroupProps, useFrame, useThree } from "@react-three/fiber"; // useFrame für animation
+import { Text, RoundedBox } from "@react-three/drei"; // 3d text , abgerundete box
 import { useState, useRef, useMemo, useEffect } from "react";
 import * as THREE from "three";
-import { useTexture } from "@react-three/drei";
+import { useTexture } from "@react-three/drei"; // bilder laden 
 
-const IMAGE_WIDTH = 1.4 
+const IMAGE_WIDTH = 1.4     // breite höhe der Bilder 
 const IMAGE_HEIGHT = 0.95
 
 const INFO_PLANE_OFFSET_X = IMAGE_WIDTH + 0.2; // Abstand Info-Plane
-const GALLERY_SCALE = 1.25;  
+const GALLERY_SCALE = 1.25;  // skalierung der galerie
 
 // --> Sphärische Bild-Positionen  
 const IMAGE_RADIUS = 4;        
-const IMAGE_BASE_Y = 1;       
-const IMAGE_Y_VARIATION = 0.35;  
+const IMAGE_BASE_Y = 1;       // höhe
+const IMAGE_Y_VARIATION = 0.35;   //vertikale variante
 
+// Berechnet Positionen für Bilder auf einer Kugel
 const getSphericalImagePositions = (count: number) =>
   Array.from({ length: count }).map((_, i) => {
-    const a = (i / count) * Math.PI * 2;
+    const a = (i / count) * Math.PI * 2; // winkel auf der kugel
     return [
-      Math.sin(a) * IMAGE_RADIUS,
-      IMAGE_BASE_Y + Math.sin(a * 2) * IMAGE_Y_VARIATION,
-      Math.cos(a) * IMAGE_RADIUS,
+      Math.sin(a) * IMAGE_RADIUS, // x 
+      IMAGE_BASE_Y + Math.sin(a * 2) * IMAGE_Y_VARIATION, //y 
+      Math.cos(a) * IMAGE_RADIUS, // z
     ] as [number, number, number];
   });
 
@@ -29,9 +30,10 @@ const GALLERY_RADIUS_IMAGES = 2.6;
 const GALLERY_BASE_Y = 1.3;
 const GALLERY_Y_VARIATION = 0.35;
 
+// Hilfsfunktion für Base-URL (Vite
 const withBase = (path: string) => `${import.meta.env.BASE_URL}${path}`;
 
-// PRELOAD HOOK
+// PRELOAD HOOK für texturen
 
 export function usePreloadTextures(urls: string[]) {
   const [textures, setTextures] = useState<THREE.Texture[]>([]);
@@ -40,6 +42,7 @@ export function usePreloadTextures(urls: string[]) {
     let mounted = true;
     const loader = new THREE.TextureLoader();
 
+    // alle bilder parallel laden
     Promise.all(
       urls.map(
         (url) =>
@@ -54,7 +57,7 @@ export function usePreloadTextures(urls: string[]) {
       )
     )
       .then((texs) => {
-        if (mounted) setTextures(texs);
+        if (mounted) setTextures(texs); //textur nur setzen wenn komponente existiert 
       })
       .catch((err) => console.error("Texture loading failed", err));
 
@@ -188,9 +191,9 @@ const locationCaptions: Record<string, string[]> = {
 
 //   Bild-Button (Billboard)
 function ImageButton({ texturePath, onClick }: { texturePath: string; onClick: () => void }) {
-  const ref = useRef<THREE.Mesh>(null);
-  const { camera } = useThree();
-  const texture = useTexture(texturePath);
+  const ref = useRef<THREE.Mesh>(null); // referenz auf mesh
+  const { camera } = useThree(); // zugriff auf kamera 
+  const texture = useTexture(texturePath); //textur laden
 
   useFrame(({ clock }) => {
     if (!ref.current) return;
@@ -233,14 +236,15 @@ export default function InfoPlanes({
     [textures.length]
   );
 
-  const [activeInfoIndices, setActiveInfoIndices] = useState<number[]>([]);
-  const imagePlaneRefs = useRef<THREE.Group[]>([]);
-  const introPlaneRef = useRef<THREE.Group>(null);
+  // refs und state
+  const [activeInfoIndices, setActiveInfoIndices] = useState<number[]>([]); //welche info box auf ist 
+  const imagePlaneRefs = useRef<THREE.Group[]>([]); // referezn AUF alle Bilder 
+  const introPlaneRef = useRef<THREE.Group>(null); // referenz auf intro plane
   const imageOnlyRefs = useRef<THREE.Group[]>([]); // NUR Bild pulsiert
 
+  const { camera } = useThree(); // zugriff auf kamera 
 
-  const { camera } = useThree();
-
+  // intro plane zur kamera gedreht 
 useFrame(() => {
   if (!introPlaneRef.current) return;
 
@@ -251,6 +255,7 @@ useFrame(() => {
   );
 });
 
+// alle bilder horizontal zur kamera drehen
 useFrame(() => {
   imagePlaneRefs.current.forEach((plane) => {
     if (!plane) return;
@@ -273,7 +278,7 @@ useFrame(() => {
     });
   });
 
-  // Ladeanzeige, falls Texturen noch nicht fertig
+  // Ladeanzeige, falls Texturen noch nicht fertig geladen
   if (showInfo && textures.length !== images.length) {
     return (
       <group>
@@ -284,7 +289,7 @@ useFrame(() => {
     );
   }
 
-
+// haupt rendering 
   return (
     <group {...props}>
       {/* ================= Standort Button  ================= */}
@@ -293,7 +298,6 @@ useFrame(() => {
           <ImageButton texturePath={texturePath} onClick={() => setShowInfo(true)} />
         </group>
       )}
-
 
       {/* ================= InfoGalerie ================= */}
       {showInfo && (

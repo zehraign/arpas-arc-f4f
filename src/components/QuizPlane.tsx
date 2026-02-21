@@ -11,33 +11,35 @@ interface Question {
 }
 
 interface QuizPlaneProps extends GroupProps {
-  questions: Question[];
-  onClose: (completed: boolean) => void; // ✅ übergeben, ob Quiz bestanden
+  questions: Question[]; // fragen array für das Quiz
+  onClose: (completed: boolean) => void; // übergeben, ob Quiz bestanden
 }
 
-/* -------------------- Constants -------------------- */
+/* Constants  */
 
-const TEXT = "#111";
-const RED = "#d9534f";
+const TEXT = "#111"; 
+const RED = "#d9534f"; // rot falsche antowrt x buttons
 
-/* -------------------- Component -------------------- */
+/*  Component */
 export default function QuizPlane({
   questions,
   onClose,
   ...props
 }: QuizPlaneProps) {
+  // - State 
   const [current, setCurrent] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
-  const [answered, setAnswered] = useState(false);
-  const [showResult, setShowResult] = useState(false);
-  const [score, setScore] = useState(0);
-  const [quizTime, setQuizTime] = useState(0);
-const [isQuizRunning, setIsQuizRunning] = useState(true);
+  const [answered, setAnswered] = useState(false); // ob aktuelle frage beantwortet
+  const [showResult, setShowResult] = useState(false); 
+  const [score, setScore] = useState(0); // anzahl richtig beantwortete 
+  const [quizTime, setQuizTime] = useState(0); // timer in sekunden 
+const [isQuizRunning, setIsQuizRunning] = useState(true); // timer status
   
 
-  const q = questions[current];
-  const progress = (current + 1) / questions.length;
+  const q = questions[current]; // aktuelle frage
+  const progress = (current + 1) / questions.length; // fortschritt für progressboard 
 
+  // TIMER
   useEffect(() => {
     if (!isQuizRunning) return;
     const id = setInterval(() => {
@@ -47,12 +49,12 @@ const [isQuizRunning, setIsQuizRunning] = useState(true);
   }, [isQuizRunning]);
  
 
-  /* -------------------- Handlers -------------------- */
+  /*  Handlers  */
   const handleSelect = (idx: number) => {
-    if (answered) return;
+    if (answered) return; // keine mehrfachauswahl
     setSelected(idx);
-    setAnswered(true);
-    if (idx === q.correct) setScore((s) => s + 1);
+    setAnswered(true); // frage als beantwortet markieren
+    if (idx === q.correct) setScore((s) => s + 1); // wenn richuig + 1 punkt 
   };
 
   const handleNext = () => {
@@ -60,14 +62,15 @@ const [isQuizRunning, setIsQuizRunning] = useState(true);
     setAnswered(false);
   
     if (current + 1 < questions.length) {
-      setCurrent((c) => c + 1);
+      setCurrent((c) => c + 1); // nächste frage
     } else {
-      setShowResult(true);
+      setShowResult(true); // quiz beenden
       setIsQuizRunning(false); // ⏸️ STOPPUHR STOPPEN
     }
   };
 
   const handleRestart = () => {
+    // quiz zurücksetzen
     setCurrent(0);
     setSelected(null);
     setAnswered(false);
@@ -92,7 +95,7 @@ setIsQuizRunning(true);
         position={[0.58, 0.42, 0.06]}
         radius={0.03}
         onPointerDown={() => {
-          setIsQuizRunning(false);
+          setIsQuizRunning(false); // timmer stoppen
           onClose(score === questions.length);
         }}
       >
@@ -104,7 +107,7 @@ setIsQuizRunning(true);
 
       {!showResult && (
         <>
-          {/* HEADER */}
+          {/* HEADER aktuelle frage */}
           <Text
             position={[0, 0.42, 0.06]}
             fontSize={0.05}
@@ -131,7 +134,7 @@ setIsQuizRunning(true);
   <meshStandardMaterial color="#e0e0e0" />
 </RoundedBox>
 
-{/* PROGRESS BAR FILL */}
+{/* PROGRESS BAR Füllung */}
 <RoundedBox
   args={[1.1 * progress, 0.045, 0.02]}
   position={[
@@ -190,13 +193,13 @@ setIsQuizRunning(true);
             );
           })}
 
-          {/* NEXT */}
+          {/* NEXT button nur wenn frage beantwortet*/}
           {answered && (
             <RoundedBox
               args={[0.45, 0.12, 0.04]}
               position={[0, -0.52, 0.04]}
               radius={0.03}
-              onPointerDown={handleNext}
+              onPointerDown={handleNext} // nächste frage
               
             >
               <meshStandardMaterial color="#1abc9c" />
@@ -237,7 +240,7 @@ setIsQuizRunning(true);
 <Text position={[0, -0.18, 0.06]} fontSize={0.055} color={TEXT}>
   ⏱ Zeit: {formatTime(quizTime)}
 </Text>
-
+{/* nochmal button am ende */}
           <RoundedBox
             args={[0.55, 0.12, 0.04]}
             position={[0, -0.30, 0.04]}
@@ -248,7 +251,7 @@ setIsQuizRunning(true);
               Nochmal
             </Text>
           </RoundedBox>
-
+{/* schließen button */}
           <RoundedBox
   args={[0.55, 0.12, 0.04]}
   position={[0, -0.46, 0.04]}

@@ -111,9 +111,6 @@ export const quizLocations = [
   },
 ];
 
-
 // Gebäude H 30 m hat geklappt  
 // Besprechungs raum  coords: { lat: 52.45513200191987, lon: 13.52537978909434 },  
   
-// 50 m hat nur geklappt 
-// Meine Koordinaten coords: { lat: 52.540636660690225, lon: 13.391817612557453 },  

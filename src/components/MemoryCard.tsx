@@ -26,10 +26,10 @@ export default function MemoryCard({
 
   useEffect(() => {
     if (isMatched) {
-      // Warte 800ms (Animation schauen lassen), dann erst aus dem DOM nehmen
+      //Animation dauert 800ms 
       const timer = setTimeout(() => setShouldRender(false), 800);
       return () => clearTimeout(timer);
-    } else {
+    } else { // Falls nicht gematcht wieder normal anzeigen
       setShouldRender(true);
     }
   }, [isMatched]);
@@ -37,14 +37,14 @@ export default function MemoryCard({
   useFrame((state, delta) => {
     if (!outerRef.current || !innerRef.current) return;
 
-    // 1. Billboard: Nur horizontal zur Kamera drehen
+    //  Billboard: Karte dreht horizontal zur Kamera 
     outerRef.current.lookAt(
       camera.position.x,
       outerRef.current.position.y,
       camera.position.z
     );
 
-    // 2. Flip-Animation
+    // Flip-Animation --> roation um pi (180 grad)
     const targetRotation = isFlipped ? Math.PI : 0;
     innerRef.current.rotation.y = THREE.MathUtils.lerp(
       innerRef.current.rotation.y,
@@ -52,7 +52,7 @@ export default function MemoryCard({
       delta * 10
     );
 
-    // 3. NEU: Treffer-Animation (Hüpfen/Skalieren)
+    // Match Animation --> bei richtigen treffer
     if (isMatched) {
       // Lässt die Karte kurz größer werden und pulsieren
       const bounce = 1 + Math.sin(state.clock.elapsedTime * 8) * 0.15;
@@ -60,7 +60,7 @@ export default function MemoryCard({
     }
   });
 
-  // Wenn die Animation vorbei ist, rendern wir nichts mehr
+  // Wenn die Animation vorbei ist, wird nichts mehr gerendert 
   if (!shouldRender) return null;
 
   return (
@@ -69,17 +69,18 @@ export default function MemoryCard({
         ref={innerRef}
         onPointerDown={(e) => {
           e.stopPropagation();
-          // Klick nur erlauben, wenn nicht geflippt UND nicht gematcht
+          // Klicken nur erlaubt, wenn nicht geflippt und nicht gematcht
           if (!isFlipped && !isMatched) onClick();
         }}
       >
         <RoundedBox args={[0.28, 0.38, 0.04]} radius={0.03}>
           <meshStandardMaterial color={isMatched ? "#75ed89" : "#285883"} /> 
-          {/* Farbe ändert sich bei Treffer kurz zu Grün */}
+          {/* Grün bei Treffer, sonst Blau */}
         </RoundedBox>
 
         <group rotation={[0, Math.PI, 0]} position={[0, 0, -0.021]}>
-          <Image
+          {/* Rückseite mit Bild um 180 grad gedreht */}
+          <Image 
             url={image}
             scale={[0.24, 0.34]}
             transparent

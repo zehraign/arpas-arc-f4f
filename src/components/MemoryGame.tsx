@@ -5,10 +5,10 @@ import * as THREE from "three";
 import MemoryCard from "./MemoryCard";
 import { memoryCards, MemoryCategory } from "../data/memoryCards";
 
-/* 🔥 PRELOAD ALL TEXTURES */
+// Alle Bilder werden vorgeladen 
 useTexture.preload(memoryCards.map(c => c.image));
 
-/* ---------------- TYPES ---------------- */
+//TYPES 
 interface CardState {
   id: number;
   isFlipped: boolean;
@@ -16,9 +16,9 @@ interface CardState {
   position: [number, number, number];
 }
 
-/* ---------------- HELPERS ---------------- */
+//HELPERS
 const shuffleArray = <T,>(arr: T[]) => {
-  const a = [...arr];
+  const a = [...arr]; // Mischt ein Array zufällig
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [a[i], a[j]] = [a[j], a[i]];
@@ -26,14 +26,14 @@ const shuffleArray = <T,>(arr: T[]) => {
   return a;
 };
 
-const formatTime = (s: number) =>
+const formatTime = (s: number) => // Wandelt Sekunden in MM:SS um
   `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
 const CARD_RADIUS = 2.2;
 const CARD_BASE_Y = 1.15;
 const CARD_Y_VARIATION = 0.35;
 
-const getSphericalCardPositions = (count: number) =>
+const getSphericalCardPositions = (count: number) =>  // Verteilt Karten kreisförmig im Raum (also in einer Sphäre)
   Array.from({ length: count }).map((_, i) => {
     const a = (i / count) * Math.PI * 2;
     return [
@@ -43,12 +43,12 @@ const getSphericalCardPositions = (count: number) =>
     ] as [number, number, number];
   });
 
-/* ---------------- COMPONENT ---------------- */
+// COMPONENT
 interface MemoryGameProps {
   onClose?: (completed: boolean) => void; 
-}
+}// completed sagt, ob das Spiel geschafft wurde
 
-const CONGRATS_DURATION_MS = 7000;
+const CONGRATS_DURATION_MS = 7000; // Glückwunsch Overlay wird 7 sekunden angezeigt
 
 export default function MemoryGame({ onClose }: MemoryGameProps) {
   const [cards, setCards] = useState<CardState[]>([]);
@@ -65,25 +65,25 @@ export default function MemoryGame({ onClose }: MemoryGameProps) {
     algen: 0,
     salzpflanzen: 0,
     makroquallen: 0,
-  });
+  });// Zählt Treffer pro Kategorie
 
-  // NEU: Refs und Hooks für Kamera-Tracking
-  const congratsRef = useRef<THREE.Group>(null);
-  const { camera } = useThree();
 
-  const cardDataMap = useMemo(() => {
+  const congratsRef = useRef<THREE.Group>(null); // Referenz auf das Glückwunsch-Overlay
+  const { camera } = useThree();  // Kamera holen, damit das Overlay dem Blick folgen kann
+
+  const cardDataMap = useMemo(() => { // Map für schnellen Zugriff auf Kartendaten per ID
     const m = new Map<number, typeof memoryCards[0]>();
     memoryCards.forEach(c => m.set(c.id, c));
     return m;
   }, []);
 
-  useEffect(() => {
+  useEffect(() => {// Timer läuft solange das Spiel aktiv ist
     if (!running) return;
     const id = setInterval(() => setTime(t => t + 1), 1000);
     return () => clearInterval(id);
   }, [running]);
 
-  useEffect(() => {
+  useEffect(() => {  // Spiel neu aufbauen bei Reset
     const shuffled = shuffleArray(memoryCards);
     const positions = getSphericalCardPositions(shuffled.length);
 
@@ -101,8 +101,8 @@ export default function MemoryGame({ onClose }: MemoryGameProps) {
     setShowCongrats(false);
   }, [resetCount]);
 
-  // NEU: Jedes Frame das Overlay vor die Kamera schieben
-  useFrame(() => {
+  
+  useFrame(() => {// Glückwunsch Overlay wird in jedem Frame vor die Kamera gesetzt
     if (showCongrats && congratsRef.current) {
       const offset = new THREE.Vector3(0, 0, -2.5); 
       offset.applyQuaternion(camera.quaternion);
@@ -114,27 +114,26 @@ export default function MemoryGame({ onClose }: MemoryGameProps) {
   const flipCard = (id: number) => {
     setCards(prev => {
       const clicked = prev.find(c => c.id === id);
-      if (!clicked || clicked.isFlipped || clicked.isMatched) return prev;
-      if (prev.filter(c => c.isFlipped && !c.isMatched).length >= 2) return prev;
-
-      return prev.map(c => (c.id === id ? { ...c, isFlipped: true } : c));
+      if (!clicked || clicked.isFlipped || clicked.isMatched) return prev;// Nicht nochmal anklicken wenn schon offen oder schon gefunden
+      if (prev.filter(c => c.isFlipped && !c.isMatched).length >= 2) return prev; // Maximal 2 Karten gleichzeitig offen
+      return prev.map(c => (c.id === id ? { ...c, isFlipped: true } : c));   // Geklickte Karte umdrehen
     });
     setSelected(s => (s.length < 2 ? [...s, id] : s));
   };
 
-  useEffect(() => {
+  useEffect(() => {  // Prüft immer dann, wenn 2 Karten ausgewählt wurden
     if (selected.length !== 2) return;
     const [a, b] = selected;
     const A = cardDataMap.get(a)!;
     const B = cardDataMap.get(b)!;
 
-    if (A.pairId === B.pairId) {
+    if (A.pairId === B.pairId) {  // Bei Treffer --> beide Karten nach kurzer Verzögerung als gematcht markieren
       setTimeout(() => {
         setCards(p => p.map(c => (c.id === a || c.id === b ? { ...c, isMatched: true } : c)));
         setScore(s => ({ ...s, [A.category]: s[A.category] + 1 }));
         setSelected([]);
       }, 400);
-    } else {
+    } else { //kein treffer --> werden wieder umgedreht
       setTimeout(() => {
         setCards(p => p.map(c => (c.id === a || c.id === b ? { ...c, isFlipped: false } : c)));
         setSelected([]);
@@ -142,17 +141,17 @@ export default function MemoryGame({ onClose }: MemoryGameProps) {
     }
   }, [selected, cardDataMap]);
 
-  useEffect(() => {
+  useEffect(() => { // beim finden aller Paare wird das spiel beendet
     if (!cards.length) return;
     if (cards.every(c => c.isMatched)) {
-      setRunning(false);
-      setShowCongrats(true);
-      setHasWon(true); 
+      setRunning(false); // Timer stoppen
+      setShowCongrats(true);  // Glückwunsch anzeigen
+      setHasWon(true);  // Gewinn merken
       setTimeout(() => setShowCongrats(false), CONGRATS_DURATION_MS);
     }
   }, [cards]);
 
-  const newGame = () => {
+  const newGame = () => {  // Setzt Score und Zeit zurück und startet neu
     setScore({ grillen: 0, algen: 0, salzpflanzen: 0, makroquallen: 0 });
     setTime(0);
     setResetCount(r => r + 1);
@@ -160,7 +159,8 @@ export default function MemoryGame({ onClose }: MemoryGameProps) {
 
   return (
     <group>
-      {/* ================= HUD (Bleibt fest im Raum) ================= */}
+      {/* HUD(head up display) */}
+      {/* Feste Anzeige im Raum --> Titel, Zeit, Score, Buttons */}
       <group position={[0, 1.9, -4.2]}>
         <RoundedBox args={[2.6, 0.6, 0.06]} radius={0.06}>
           <meshStandardMaterial color="#bbd4f4" />
@@ -188,6 +188,7 @@ export default function MemoryGame({ onClose }: MemoryGameProps) {
           </Text>
         ))}
 
+         {/* Neustart-Button */}
         <RoundedBox args={[0.9, 0.18, 0.05]} radius={0.04} position={[0, -0.24, 0.08]} onPointerDown={newGame}>
           <meshStandardMaterial color="#285883" />
           <Text fontSize={0.065} anchorX="center" anchorY="middle" position={[0, 0, 0.03]}>
@@ -196,6 +197,7 @@ export default function MemoryGame({ onClose }: MemoryGameProps) {
           </Text>
         </RoundedBox>
 
+        {/* Schließen-Button */}
         {onClose && (
           <RoundedBox
             args={[0.14, 0.14, 0.03]}
@@ -212,7 +214,7 @@ export default function MemoryGame({ onClose }: MemoryGameProps) {
         )}
       </group>
 
-      {/* 🎉 CONGRATS OVERLAY (Head-Locked: Folgt deinem Blick) */}
+      {/* Glückwunsch overlay  */}
       {showCongrats && (
         <group ref={congratsRef}>
           <pointLight position={[0, 2, 2]} intensity={0.5} />
@@ -229,7 +231,7 @@ export default function MemoryGame({ onClose }: MemoryGameProps) {
         </group>
       )}
 
-      {/* ================= CARDS (Bleiben fest im Raum) ================= */}
+      {/* CARDS --> Karten im Raum rendern */}
       {cards.map(card => {
         const data = cardDataMap.get(card.id)!;
         return (

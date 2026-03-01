@@ -5,12 +5,12 @@ import Puzzle3D from "./Puzzle3D";
 import { formatTime } from "../utility";
 
 interface PuzzleWithBackProps extends GroupProps {
-  onBack: (completed: boolean) => void;
-  imageUrl: string;
+  onBack: (completed: boolean) => void; // Callback beim Zurückgehen
+  imageUrl: string; // Bild für das Puzzle
 }
 
-const PUZZLE_CONTAINER_POSITION: [number, number, number] = [0, 0, -0.35];
-const CONGRATS_DURATION_MS = 7000;
+const PUZZLE_CONTAINER_POSITION: [number, number, number] = [0, 0, -0.35]; // Position vom Puzzle relativ zur Hauptgruppe
+const CONGRATS_DURATION_MS = 7000; // glückwunsch overlay ist 7 sek sichtbar
 
 export default function PuzzleWithBack({
   onBack,
@@ -18,32 +18,32 @@ export default function PuzzleWithBack({
   position = [0, 1, -1.7],
   ...props
 }: PuzzleWithBackProps) {
-  const [showCongrats, setShowCongrats] = useState(false);
-  const [isCompleted, setIsCompleted] = useState(false); // ✅ Bleibt true
-  const [currentTime, setCurrentTime] = useState(0);
-  const [isPuzzleRunning, setIsPuzzleRunning] = useState(true);
-  const [resetCount, setResetCount] = useState(0);
+  const [showCongrats, setShowCongrats] = useState(false); // Steuert, ob das Glückwunsch Overlay angezeigt wird
+  const [isCompleted, setIsCompleted] = useState(false); // Merkt dauerhaft, ob das Puzzle schon einmal gelöst wurde
+  const [currentTime, setCurrentTime] = useState(0); // spielzeit timer
+  const [isPuzzleRunning, setIsPuzzleRunning] = useState(true); // Steuert, ob der Timer weiterläuft
+  const [resetCount, setResetCount] = useState(0);  // Erzwingt ein Zurücksetzen des Puzzles
 
-  /* TIMER */
-  useEffect(() => {
+  // TIMER 
+  useEffect(() => { // timer geht solange das puzzle läuft
     if (!isPuzzleRunning) return;
     const id = setInterval(() => setCurrentTime(t => t + 1), 1000);
     return () => clearInterval(id);
   }, [isPuzzleRunning]);
 
-  const handleSolved = () => {
-    setIsPuzzleRunning(false);
-    setShowCongrats(true);
-    setIsCompleted(true); // ✅ Erfolg speichern
-    setTimeout(() => setShowCongrats(false), CONGRATS_DURATION_MS);
+  const handleSolved = () => { // werden aufgerufen, wenn das Puzzle gelöst wurde
+    setIsPuzzleRunning(false); // Timer stoppen
+    setShowCongrats(true);// Glückwunsch anzeigen
+    setIsCompleted(true); // Erfolg speichern
+    setTimeout(() => setShowCongrats(false), CONGRATS_DURATION_MS); // Overlay nach einigen Sekunden wieder ausblenden
   };
 
-  const handleNewGame = () => {
-    setResetCount(c => c + 1);
-    setCurrentTime(0);
-    setIsPuzzleRunning(true);
-    setShowCongrats(false);
-    // isCompleted lassen wir auf true, falls er schonmal gewonnen hat
+  const handleNewGame = () => { // Startet ein neues Spiel
+    setResetCount(c => c + 1);  // Puzzle neu aufbauen
+    setCurrentTime(0);  // Zeit zurücksetzen
+    setIsPuzzleRunning(true);  // Timer neu starten
+    setShowCongrats(false);  // Glückwunsch ausblenden
+    // isCompleted bleibt true, falls er schonmal gewonnen hat
   };
 
   return (
@@ -62,9 +62,10 @@ export default function PuzzleWithBack({
               radius={0.02}
               onPointerDown={(e) => {
                 e.stopPropagation();
-                onBack(isCompleted); // ✅ Nutzt den dauerhaften Status
+                onBack(isCompleted); 
               }}
             >
+              
               <meshStandardMaterial color="#b22323" />
             </RoundedBox>
             <Text position={[0, 0, 0.045]} fontSize={0.08} color="#ffffff">X</Text>
@@ -81,7 +82,7 @@ export default function PuzzleWithBack({
           >
            Schiebe die Kacheln, um das Bild wiederherzustellen!
           </Text>
-
+              {/* Timer */}
           <Text position={[0, -0.13, 0.04]} fontSize={0.065} color="#c42424">
             ⏱ {formatTime(currentTime)}
           </Text>
@@ -102,7 +103,7 @@ export default function PuzzleWithBack({
           <Text position={[0, 0, 0.06]} fontSize={0.07} color="white">Neues Spiel</Text>
         </group>
 
-        {/* 🎉 GESCHAFFT OVERLAY */}
+        {/* Geschafft Overlay */}
         {showCongrats && (
           <group position={[0, 0.1, 0.4]}>
             <RoundedBox args={[1.3, 0.6, 0.04]} radius={0.05}>

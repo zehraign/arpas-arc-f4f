@@ -10,13 +10,12 @@ export function createInitialState(): PuzzleState {
   return tiles;
 }
 
-// === LÖSBARKEITSPRÜFUNG ===
+// LÖSBARKEITSPRÜFUNG
 
 // Zählt die Anzahl der Inversionen im Zustand des Puzzles.
-// Eine Inversion liegt vor, wenn eine Kachel mit einer höheren ID vor einer Kachel mit einer niedrigeren ID steht.
 function getInversions(state: PuzzleState): number {
   let inversions = 0;
-  // Wir betrachten nur die IDs der nicht-leeren Kacheln
+  // Wir betrachten nur die IDs der nicht leeren Kacheln
   const numbers = state
     .filter(tile => !tile.isEmpty)
     .map(tile => tile.id);
@@ -31,26 +30,22 @@ function getInversions(state: PuzzleState): number {
   return inversions;
 }
 
-// Prüft, ob ein Puzzle lösbar ist.
-// Für ein Gitter mit ungerader Kantenlänge (z.B. 3x3, GRID_SIZE = 3) ist es lösbar,
-// wenn die Anzahl der Inversionen gerade ist.
+// Prüft, ob ein Puzzle lösbar ist
 export function isSolvable(state: PuzzleState): boolean {
   // Da GRID_SIZE = 3 (ungerade) ist, muss die Inversionsanzahl gerade sein.
   return getInversions(state) % 2 === 0;
 }
 
 
-// Mischen
-// Diese Funktion mischt den Zustand und stellt sicher, dass er lösbar ist.
+// Mischen --> stellt sicher dass es lösbar isr
 export function shuffle(state: PuzzleState): PuzzleState {
   let initial = [...state];
 
-  // Führe eine Schleife aus, bis ein lösbarer Zustand gefunden wird
   do {
-    // 1. Initialzustand erstellen (wichtig, falls die übergebene 'state' nicht der Initialzustand war)
+    // 1. Initialzustand erstellen
     initial = createInitialState();
     
-    // 2. Fisher-Yates-Shuffle anwenden
+    // 2. Fisher-Yates-Shuffle
     const arr = [...initial];
     for (let i = arr.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -58,7 +53,7 @@ export function shuffle(state: PuzzleState): PuzzleState {
     }
     initial = arr;
 
-  } while (!isSolvable(initial)); // Wiederhole, solange der Zustand NICHT lösbar ist
+  } while (!isSolvable(initial)); // Wiederhole solange der Zustand nicht lösbar ist
 
   return initial;
 }
@@ -88,7 +83,7 @@ export function isSolved(state: PuzzleState): boolean {
   return state.every((tile, index) => tile.id === index + 1);
 }
 
-// NEUE FUNKTION: Zeitformatierung
+// Zeitformatierung
 export function formatTime(totalSeconds: number): string {
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;

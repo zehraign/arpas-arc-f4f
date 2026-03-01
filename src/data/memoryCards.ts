@@ -1,4 +1,4 @@
-// data/memoryCards.ts
+
 export type MemoryCategory =
   | "grillen"
   | "algen"
@@ -15,9 +15,8 @@ export interface MemoryCardData {
 const withBase = (path: string) => `${import.meta.env.BASE_URL}${path}`;
 
 export const memoryCards: MemoryCardData[] = [
-  // =======================
+
   // GRILLEN (2 Paare)
-  // =======================
   {
     id: 1,
     pairId: 1,
@@ -43,9 +42,8 @@ export const memoryCards: MemoryCardData[] = [
     image: withBase("images/memory/grillen2.jpg"),
   },
 
-  // =======================
+
   // ALGEN (2 Paare)
-  // =======================
   {
     id: 5,
     pairId: 3,
@@ -71,9 +69,8 @@ export const memoryCards: MemoryCardData[] = [
     image: withBase("images/memory/algen2.jpg"),
   },
 
-  // =======================
+
   // SALZPFLANZEN (2 Paare)
-  // =======================
   {
     id: 9,
     pairId: 5,
@@ -99,9 +96,8 @@ export const memoryCards: MemoryCardData[] = [
     image: withBase("images/memory/salzpflanzen2.jpg"),
   },
 
-  // =======================
+
   // MAKROQUALLEN (2 Paare)
-  // =======================
   {
     id: 13,
     pairId: 7,

@@ -1,9 +1,9 @@
 export const quizLocations = [
   {
     id: "kitchen",
-    name: "Future Food Kitchen", //52.5266778505573, 13.360364159211882
-    coords: { lat: 52.454925431306826, lon: 13.525137894320649},
-    radius: 10, // richtige coords: { lat: 52.45554951375966, lon: 13.52518413859404 }, 
+    name: "Future Food Kitchen", 
+    coords: { lat: 52.455969591045005, lon:  13.523963941543776,},
+    radius: 30,  
 
     features: {
       quiz: {
@@ -19,14 +19,12 @@ export const quizLocations = [
     infoId: "kitchen", // InfoPlanes
   },
 
+
   {
     id: "algen", 
     name: "Gebäude A – Algenlabor",
-    //coords: { lat: 52.540636660690225, lon: 13.391817612557453 },
-     coords: { lat: 52.45511384294132, lon: 13.52544464354287 },
-  //lat: 52.5266778505573, lon: 13.360364159211882 zuhause 
-  // zuhause 2 lat: 52.526584355002946, lon: 13.360435675215633
-    radius: 10, 
+     coords: { lat: 52.45788382109189, lon: 13.525577966020453 },
+    radius: 30,
 
     features: {
       quiz: {
@@ -44,13 +42,13 @@ export const quizLocations = [
     infoId: "algen", // InfoPlane
   },
 
+
   {
     id: "quallen",
     name: "Bibliothek – Quallenlabor",
-   //s coords: { lat: 52.45510590524545, lon: 13.525163019961198 },
-    coords: { lat: 57.45510590524545, lon: 13.525163019961198  },
+    coords: { lat:52.45529409001676, lon: 13.52487747220194  },
   
-    radius: 10, 
+    radius: 30, 
 
     features: {
       quiz: {
@@ -69,13 +67,13 @@ export const quizLocations = [
     infoId: "quallen",
   },
 
+
   {
     id: "salzpflanzen",
     name: "Gebäude C – Salzpflanzenlabor",
    
-     coords: { lat: 52.455111227730356, lon:13.525546761324394  },   
-
-    radius: 10,
+     coords: { lat: 52.455111227730356, lon:13.525546761324394  },  
+    radius: 30,
 
     features: {
       quiz: {
@@ -90,12 +88,13 @@ export const quizLocations = [
     infoId: "salzpflanzen",
   },
 
+
   {
     id: "grillen",
     name: "Gebäude E – Grillenlabor",
     
    coords: { lat: 56.45639953688056, lon: 13.525978466276289 },
-    radius: 50,
+    radius: 30,
 
     features: {
       quiz: {
@@ -110,7 +109,3 @@ export const quizLocations = [
     infoId: "grillen",
   },
 ];
-
-// Gebäude H 30 m hat geklappt  
-// Besprechungs raum  coords: { lat: 52.45513200191987, lon: 13.52537978909434 },  
-  

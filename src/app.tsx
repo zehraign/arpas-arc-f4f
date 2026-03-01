@@ -30,10 +30,12 @@ import { SceneData } from "./types/objectData";
 import { TopicData } from "./types/topicData";
 import { ContentTypesData } from "./types/contentTypesData";
 
+/*XR store mit hit test und Bodenerkennung*/
 const store = createXRStore({
   controller: false,
   optionalFeatures: ["hit-test", "local-floor"],
 });
+// Lädt alle Quiz Dateien
 const quizzes = (import.meta as any).glob("./data/*.json");
 
 interface AppProps {
@@ -42,7 +44,7 @@ interface AppProps {
   topic: TopicData;
 }
 
-/* Billboard Helper (dreht zur Kamera, bleibt im Worldspace) */
+/* Billboard --> dreht UI Elemente zur Kamera, bleibt aber an der gleichen Stelle */
 function Billboard({
   children,
   position,
@@ -54,6 +56,7 @@ function Billboard({
   const { camera } = useThree();
   useFrame(() => {
     if (!ref.current) return;
+    // Dreht sich nur horizontal zur Kamera
     ref.current.lookAt(
       new THREE.Vector3(camera.position.x, ref.current.position.y, camera.position.z)
     );
@@ -65,10 +68,10 @@ function Billboard({
   );
 }
 
-/**
- * SpawnInFrontOnKey
- * Platziert Kinder bei spawnKey-Wechsel einmalig vor die Kamera und lässt sie dann im Raum stehen.
- * (Nutzen wir für Quiz/Puzzle/Memory Overlays, damit sie nicht "hinten" bleiben.)
+/*
+ SpawnInFrontOnKey
+  Platziert ein Overlay einmalig vor der Kamera, wenn sich der spawnKey ändert
+ --> genutzt für  Quiz/Puzzle/Memory Overlays, damit sie nicht "hinten" bleiben.
  */
 function SpawnInFrontOnKey({
   spawnKey,
@@ -85,22 +88,24 @@ function SpawnInFrontOnKey({
   useEffect(() => {
     if (!ref.current) return;
 
+    // Position relativ zur aktuellen Kamerarichtung berechnen
     const pos = offset.clone().applyQuaternion(camera.quaternion).add(camera.position);
     ref.current.position.copy(pos);
+    // Overlay schaut zur Kamera
     ref.current.lookAt(camera.position.x, ref.current.position.y, camera.position.z);
   }, [spawnKey, camera, offset]);
 
   return <group ref={ref}>{children}</group>;
 }
 
-/**
- * LocationUIAnchor
- * Ein gemeinsamer Anker für: Buttons + Badge-Leiste + Info Button.
- * Bei Location-Wechsel wird alles einmalig vor dir platziert, danach bleibt es im Raum stehen.
+/*
+  LocationUIAnchor
+  Ein gemeinsamer Anker für Buttons, Badge-Leiste und Info Button
+  --> Wird bei Ortswechsel neu vor dem Nutzer platziert
  */
 function LocationUIAnchor({
   anchorKey,
-  distance = 1.9, // ✅ weiter nach hinten in den Raum
+  distance = 1.9, 
   height = 0.1,
   children,
 }: {
@@ -115,7 +120,10 @@ function LocationUIAnchor({
   useEffect(() => {
     if (!ref.current) return;
 
+     // Vorwärtsrichtung der Kamera bestimmen
     const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+    
+    // Position vor der Kamera berechnen
     const pos = new THREE.Vector3()
       .copy(camera.position)
       .add(forward.multiplyScalar(distance));
@@ -123,13 +131,17 @@ function LocationUIAnchor({
     pos.y += height;
 
     ref.current.position.copy(pos);
+    // zur Kamera ausrichten
     ref.current.lookAt(camera.position.x, ref.current.position.y, camera.position.z);
   }, [anchorKey, camera, distance, height]);
 
   return <group ref={ref}>{children}</group>;
 }
 
-/* Sync Helpers */
+
+/* Sync Helpers 
+--> halten React State und XR synchron */
+// Schließt das Navigation Overlay automatisch, wenn AR nicht mehr aktiv ist
 function NavigationOverlayStateSync({ isArActive }: { isArActive: boolean }) {
   const { close } = useNavigationOverlay();
   useEffect(() => {
@@ -137,6 +149,7 @@ function NavigationOverlayStateSync({ isArActive }: { isArActive: boolean }) {
   }, [isArActive, close]);
   return null;
 }
+// Gibt weiter, ob gerade eine XR Session läuft
 function XrSessionSync({ onChange }: { onChange: (active: boolean) => void }) {
   const session = useXR((s) => s.session);
   useEffect(() => {
@@ -152,6 +165,8 @@ function DomOverlayRootSync({ onChange }: { onChange: (root: Element | null) => 
   return null;
 }
 
+/* Buttons für verschiedene Stationen
+--> zeigt quiz, puzzle, memory Buttons, abängig von der Location an*/
 type LocationInteractionButtonsProps = {
   activeLocation: any;
   canStartQuiz: boolean;
@@ -178,16 +193,18 @@ function LocationInteractionButtons({
   const { isOpen } = useNavigationOverlay();
 
   const handleStartInteraction = (type: "quiz" | "puzzle" | "memory") => {
+    // Solange das Navigations Overlay offen ist, keine Interaktion starten
     if (isOpen) return;
     if (type === "quiz") setShowQuiz(true);
     if (type === "puzzle") setShowPuzzle(true);
     if (type === "memory") setShowMemory(true);
   };
-
+// Buttons nur zeigen, wenn eine Location aktiv ist und gerade kein anderes Overlay offen ist
   if (!activeLocation || showQuiz || showPuzzle || showMemory || showInfo) return null;
 
   return (
     <group>
+      {/* Quiz Button */}
       {canStartQuiz && (
         <group position={[-0.6, 0.2, 0]}>
           <RoundedBox
@@ -219,7 +236,7 @@ function LocationInteractionButtons({
         </group>
       )}
 
-      {/* ✅ Memory Button auf der gleichen Position wie Puzzle (sie sind ja nicht gleichzeitig) */}
+      {/* Memory Button --> auf der gleichen Position wie Puzzle, da sie an verschiedenen Locations sind */}
       {(activeLocation.features?.memory || activeLocation.id === "kitchen") && (
         <group position={[0.6, 0.2, 0]}>
           <RoundedBox
@@ -238,6 +255,7 @@ function LocationInteractionButtons({
   );
 }
 
+/*Hauptkomponente*/
 export default function App({ content_types, scene, topic }: AppProps) {
   /* UI States */
   const [inAR, setInAR] = useState(false);
@@ -245,9 +263,9 @@ export default function App({ content_types, scene, topic }: AppProps) {
   const [showInfo, setShowInfo] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  /* Game States */
+  /* Game/Location States */
   const [activeLocation, setActiveLocation] = useState<any | null>(null);
-
+// Refs speichern den letzten bekannten Zustand
   const activeLocationRef = useRef<any | null>(null);
   const lastLocationIdRef = useRef<string | null>(null);
 
@@ -255,15 +273,18 @@ export default function App({ content_types, scene, topic }: AppProps) {
     activeLocationRef.current = activeLocation;
   }, [activeLocation]);
 
+  /*Interaktions States*/
   const [quizData, setQuizData] = useState<any[] | null>(null);
   const [showQuiz, setShowQuiz] = useState(false);
   const [showPuzzle, setShowPuzzle] = useState(false);
   const [showMemory, setShowMemory] = useState(false);
   const [canStartQuiz, setCanStartQuiz] = useState(false);
 
+  // Solange ein großes Overlay offen ist, werden andere UI Elemente versteckt
   const isOverlayHidden = showInfo || showMemory || showQuiz || showPuzzle;
 
   useEffect(() => {
+    // Sobald Spiel-Overlay geöffnet wird, InfoPlanes schließen
     if (showQuiz || showPuzzle || showMemory) setShowInfo(false);
   }, [showQuiz, showPuzzle, showMemory]);
 
@@ -279,15 +300,17 @@ export default function App({ content_types, scene, topic }: AppProps) {
   const badgeTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const collectBadgeSilent = (id: string, callback?: () => void) => {
+    // Badge nur einmal sammeln
     if (!id || collectedBadges.includes(id)) return;
     setCollectedBadges((p) => [...p, id]);
     callback?.();
   };
 
   const showBadgePopup = (locationId: string) => {
+    // Popup pro Location nur einmal zeigen
     if (!locationId || shownBadgePopups.includes(locationId)) return;
     const count = collectedBadges.length + 1;
-    const message =
+    const message = // Unterschiedlicher Text je nach Anzahl gesammelter Badges
       count === 1
         ? "Glückwunsch! Dein erstes Badge 🎉"
         : count === 5
@@ -299,6 +322,7 @@ export default function App({ content_types, scene, topic }: AppProps) {
     badgeTimeout.current = setTimeout(() => setNewBadgeText(null), 6000);
   };
 
+  /*AR Starten*/
   const handleEnterAR = async () => {
     try {
       await store.enterAR();
@@ -310,7 +334,7 @@ export default function App({ content_types, scene, topic }: AppProps) {
 
   /* Startscreen Animation */
   const base = import.meta.env.BASE_URL;
-  const frames = useMemo(
+  const frames = useMemo( // Alle Animationsframes des Start-Charakters vorberechnen
     () =>
       Array.from(
         { length: 10 },
@@ -321,22 +345,24 @@ export default function App({ content_types, scene, topic }: AppProps) {
   const [frameIndex, setFrameIndex] = useState(0);
 
   useEffect(() => {
-    if (inAR) return;
+    if (inAR) return; // solange man auf der Startseite ist, Charakter animieren
     const id = setInterval(() => setFrameIndex((p) => (p + 1) % 10), 160);
     return () => clearInterval(id);
   }, [inAR]);
 
-  /* Geo-Location Logik */
+  /* GeoLocation Logik
+  --> Erkennt welche Location gerade aktiv ist */
   useEffect(() => {
     if (!inAR) return;
 
     const EXIT_MARGIN = 1.5;
-    const SWITCH_ADVANTAGE = 1.5;
+    const SWITCH_ADVANTAGE = 1.5; // Neue Location muss deutlich näher sein
 
     let cancelled = false;
     setIsLoading(true);
 
     const pickLocation = (lat: number, lon: number, current: any | null) => {
+      // Distanzen zu allen bekannten Quiz Locations berechnen
       const items = quizLocations
         .map((loc) => ({
           loc,
@@ -348,18 +374,21 @@ export default function App({ content_types, scene, topic }: AppProps) {
       if (!closest) return null;
 
       if (current) {
+        // Wenn man noch innerhalb der aktuellen Zone ist, dort bleiben
         const currentDist = distanceInMeters(lat, lon, current.coords.lat, current.coords.lon);
         if (currentDist < current.radius + EXIT_MARGIN) return current;
 
+        // Nur wechseln, wenn die neue Location deutlich näher ist
         if (closest.dist < closest.loc.radius && closest.dist + SWITCH_ADVANTAGE < currentDist) {
           return closest.loc;
         }
         return null;
       }
-
+// Ohne aktuelle Location--> nur aktivieren, wenn man im Radius ist
       return closest.dist < closest.loc.radius ? closest.loc : null;
     };
-
+ 
+     // Beobachtet laufend die aktuelle GPS-Position
     const watchId = navigator.geolocation.watchPosition(
       async (pos) => {
         if (cancelled) return;
@@ -369,7 +398,7 @@ export default function App({ content_types, scene, topic }: AppProps) {
         const current = activeLocationRef.current;
         const found = pickLocation(latitude, longitude, current);
 
-
+// Keine gültige Location gefunden
         if (!found) {
           lastLocationIdRef.current = null;
           setActiveLocation(null);
@@ -379,13 +408,14 @@ export default function App({ content_types, scene, topic }: AppProps) {
           return;
         }
 
+        // Gleiche Location wie vorher --> nichts neu laden
         if (found.id === lastLocationIdRef.current) {
           setIsLoading(false);
           return;
         }
-
+        // Neue Location aktiv
         lastLocationIdRef.current = found.id;
-
+        // Alle offenen Overlays schließen
         setShowQuiz(false);
         setShowPuzzle(false);
         setShowMemory(false);
@@ -396,6 +426,7 @@ export default function App({ content_types, scene, topic }: AppProps) {
         setCanStartQuiz(false);
         setIsLoading(true);
 
+        // Falls diese Location ein Quiz hat --> Quizdaten laden
         if (found.features?.quiz) {
           const quizPath = `./data/${found.features.quiz.file}`;
           const loader = quizzes[quizPath];
@@ -403,6 +434,8 @@ export default function App({ content_types, scene, topic }: AppProps) {
             try {
               const data = await loader();
               if (cancelled) return;
+
+              // Nur übernehmen, wenn immer noch dieselbe Location aktiv ist
               if (lastLocationIdRef.current === found.id) {
                 setQuizData(data.default);
                 setCanStartQuiz(true);
@@ -422,6 +455,7 @@ export default function App({ content_types, scene, topic }: AppProps) {
       { enableHighAccuracy: true, maximumAge: 500, timeout: 10000 }
     );
 
+    // Cleanup beim Verlassen oder Neuladen
     return () => {
       cancelled = true;
       navigator.geolocation.clearWatch(watchId);
@@ -436,9 +470,10 @@ export default function App({ content_types, scene, topic }: AppProps) {
     setDomOverlayReady(true);
   }, [xrSessionActive, domOverlayRoot]);
 
+  /*RENDER*/
   return (
     <NavigationOverlayProvider>
-      {!inAR && (
+      {!inAR && ( /*Startseite*/
         <div className="startscreen">
           <img className="startscreen__bg" src={`${base}start/background.PNG`} alt="" />
           <div className="startscreen__text">
@@ -462,14 +497,17 @@ export default function App({ content_types, scene, topic }: AppProps) {
         </div>
       )}
 
+     {/*3D szene*/}
       <Canvas>
         <ambientLight intensity={0.8} />
         <directionalLight position={[5, 5, 5]} intensity={1} />
         <XR store={store}>
+          {/* Synchronisiert XR-Zustände mit React-State */}
           <XrSessionSync onChange={setXrSessionActive} />
           <DomOverlayRootSync onChange={setDomOverlayRoot} />
+
           <IfInSessionMode allow="immersive-ar">
-            {/* Loading */}
+            {/* Loading Anzeige */}
             {isLoading && (
               <Billboard position={[0, 1.4, -1.8]}>
                 <group>
@@ -491,7 +529,7 @@ export default function App({ content_types, scene, topic }: AppProps) {
               </Billboard>
             )}
 
-            {/* Model/IndexPage bleibt wie vorher (nicht spawnen) */}
+            {/* Model/IndexPage */}
             <IndexPage
               contentTypes={content_types}
               sceneData={scene}
@@ -499,7 +537,7 @@ export default function App({ content_types, scene, topic }: AppProps) {
               overlayHidden={isOverlayHidden}
             />
 
-            {/* Badge Popup (kann so bleiben) */}
+            {/* Badge Popup */}
             {newBadgeText && !showInfo && (
               <Billboard position={[0, 1.5, -1.5]}>
                 <group scale={[0.8, 0.8, 0.8]}>
@@ -519,10 +557,10 @@ export default function App({ content_types, scene, topic }: AppProps) {
               </Billboard>
             )}
 
-            {/* ✅ Gemeinsamer Anker: Buttons + Badge-Leiste + Info (bleibt im Raum, neu bei Location) */}
+            {/* Location UI */}
             {activeLocation && (
               <LocationUIAnchor anchorKey={activeLocation.id} distance={1.9} height={0.1}>
-                {/* Badge-Leiste: gleiche "Weltposition-Logik" wie Buttons */}
+                {/* Badge-Leiste*/}
                 {!isOverlayHidden && (
                   <group position={[0, 0.55, 0]}>
                     <ProgressBoard collected={collectedBadges} />
@@ -543,7 +581,7 @@ export default function App({ content_types, scene, topic }: AppProps) {
                   setShowMemory={setShowMemory}
                 />
 
-                {/* Info Button/Planes: gleiche Ankerposition, nur rechts verschoben */}
+                {/* Info Button/Planes*/}
                 {activeLocation.infoId && !showQuiz && !showPuzzle && !showMemory && (
                   <group position={[1.4, 0.05, -0.05]}>
                     <InfoPlanes
@@ -556,7 +594,7 @@ export default function App({ content_types, scene, topic }: AppProps) {
               </LocationUIAnchor>
             )}
 
-            {/* --- GAME OVERLAYS (spawnen bei Öffnen, damit sie nicht hinten bleiben) --- */}
+            {/*GAME OVERLAYS*/}
 
             {/* QUIZ */}
             {showQuiz && quizData && activeLocation && (
@@ -569,7 +607,7 @@ export default function App({ content_types, scene, topic }: AppProps) {
                   position={[0, 0, 0]}
                   onClose={(comp) => {
                     setShowQuiz(false);
-                    if (comp && activeLocation) {
+                    if (comp && activeLocation) { // Bei Erfolg Badge vergeben
                       const id = activeLocation.infoId || activeLocation.id;
                       collectBadgeSilent(id, () => showBadgePopup(id));
                     }
@@ -588,7 +626,7 @@ export default function App({ content_types, scene, topic }: AppProps) {
                   imageUrl={activeLocation.features.puzzle.image}
                   onBack={(comp) => {
                     setShowPuzzle(false);
-                    if (comp && activeLocation) {
+                    if (comp && activeLocation) { // Bei Erfolg Badge vergeben
                       const id = activeLocation.infoId || activeLocation.id;
                       collectBadgeSilent(id, () => showBadgePopup(id));
                     }
@@ -599,17 +637,17 @@ export default function App({ content_types, scene, topic }: AppProps) {
 
             {/* MEMORY */}
             {showMemory && activeLocation?.id === "kitchen" && (
-  <MemoryGame
-    onClose={(completed) => {
-      setShowMemory(false);
-      if (completed && activeLocation) {
-        const badgeId = activeLocation.infoId || activeLocation.id;
-        collectBadgeSilent(badgeId, () => showBadgePopup(badgeId));
+            <MemoryGame
+              onClose={(completed) => {
+                setShowMemory(false);
+                if (completed && activeLocation) { // Bei Erfolg Badge vergeben
+                  const badgeId = activeLocation.infoId || activeLocation.id;
+                  collectBadgeSilent(badgeId, () => showBadgePopup(badgeId));
       }
     }}
   />
 )}
-
+    {/* Navigation overlay DOM */}
           </IfInSessionMode>
         </XR>
       </Canvas>

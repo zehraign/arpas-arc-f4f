@@ -293,34 +293,50 @@ export default function App({ content_types, scene, topic }: AppProps) {
   const [domOverlayReady, setDomOverlayReady] = useState(false);
   const navPortalRoot = xrSessionActive && domOverlayReady ? domOverlayRoot : null;
 
-  /* Badge System */
-  const [collectedBadges, setCollectedBadges] = useState<string[]>([]);
+    /* Badge System */
+  const [collectedBadges, setCollectedBadges] = useState<string[]>(() => {
+  const saved = localStorage.getItem("collectedBadges");
+  return saved ? JSON.parse(saved) : [];
+});
   const [newBadgeText, setNewBadgeText] = useState<string | null>(null);
-  const [shownBadgePopups, setShownBadgePopups] = useState<string[]>([]);
+  const [shownBadgePopups, setShownBadgePopups] = useState<string[]>(() => {
+    const saved = localStorage.getItem("shownBadgePopups");
+    return saved ? JSON.parse(saved) : [];
+  });
   const badgeTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  useEffect(() => {
+    localStorage.setItem("collectedBadges", JSON.stringify(collectedBadges));
+  }, [collectedBadges]);
+
+  useEffect(() => {
+    localStorage.setItem("shownBadgePopups", JSON.stringify(shownBadgePopups));
+  }, [shownBadgePopups]);
+
   const collectBadgeSilent = (id: string, callback?: () => void) => {
-    // Badge nur einmal sammeln
     if (!id || collectedBadges.includes(id)) return;
     setCollectedBadges((p) => [...p, id]);
     callback?.();
   };
 
-  const showBadgePopup = (locationId: string) => {
-    // Popup pro Location nur einmal zeigen
+  const showBadgePopup = (locationId: string) => { // Popup pro Location nur einmal zeigen
     if (!locationId || shownBadgePopups.includes(locationId)) return;
+
     const count = collectedBadges.length + 1;
-    const message = // Unterschiedlicher Text je nach Anzahl gesammelter Badges
+    const message =// Unterschiedlicher Text je nach Anzahl gesammelter Badges
       count === 1
         ? "Glückwunsch! Dein erstes Badge 🎉"
         : count === 5
         ? "WOW! Alle Badges gesammelt! ⭐ Master Explorer!"
         : `Super! Dein ${count}. Badge!`;
+
     setNewBadgeText(message);
     setShownBadgePopups((prev) => [...prev, locationId]);
+
     if (badgeTimeout.current) clearTimeout(badgeTimeout.current);
     badgeTimeout.current = setTimeout(() => setNewBadgeText(null), 6000);
   };
+ 
 
   /*AR Starten*/
   const handleEnterAR = async () => {
